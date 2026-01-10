@@ -3,157 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Streetlifting Journal</title>
+    <title>Streetlifting Cloud Pro</title>
     <style>
-        :root { --primary: #3498db; --bg: #f4f7f6; --card: #ffffff; --accent: #e74c3c; --sync: #2ecc71; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 50px; }
+        :root { --primary: #2980b9; --bg: #f0f4f8; --card: #ffffff; --accent: #3498db; --sync: #27ae60; --light-blue: #e1f5fe; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 10px 10px 100px; -webkit-tap-highlight-color: transparent; }
         .container { max-width: 600px; margin: 0 auto; }
-        .sync-status { text-align: center; font-size: 11px; margin-bottom: 5px; color: #7f8c8d; }
-        .sync-status.loading { color: #f39c12; }
-        .sync-status.ready { color: var(--sync); }
-        .tabs { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 15px; position: sticky; top: 0; background: var(--bg); padding: 5px 0; z-index: 100; }
-        .tab-btn { flex: 1; border: none; padding: 12px 8px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 12px; background: #ddd; white-space: nowrap; }
-        .tab-btn.active { background: var(--primary); color: white; }
-        .week-content { display: none; }
-        .week-content.active { display: block; }
-        .day-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 4px solid var(--primary); }
-        .day-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; margin-bottom: 10px; padding-bottom: 5px; }
-        .day-header h3 { margin: 0; color: var(--primary); font-size: 18px; }
-        .exercise-block { margin-bottom: 12px; padding: 10px; background: #f9f9f9; border-radius: 8px; }
-        .ex-title { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; color: #333; }
-        .set-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .set-num { font-size: 11px; min-width: 15px; color: #888; font-weight: bold; }
-        input { padding: 8px 5px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: center; }
-        .input-w { width: 55px; background: #fff5f5; color: #e74c3c; font-weight: bold; }
-        .input-r { width: 50px; }
-        input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; margin-left: auto; }
-        ::placeholder { color: #bbb; font-weight: normal; font-size: 10px; }
+        .sync-status { text-align: center; font-size: 11px; color: #7f8c8d; height: 15px; margin-bottom: 5px; }
+        
+        .tabs, .day-tabs { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 10px; position: sticky; top: 0; background: var(--bg); padding: 5px 0; z-index: 100; scrollbar-width: none; }
+        .day-tabs { top: 45px; z-index: 99; border-bottom: 1px solid #d1d8e0; }
+        .tab-btn, .day-btn { flex: 1; border: none; padding: 10px 5px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 11px; background: #d1d8e0; white-space: nowrap; transition: 0.3s; }
+        .tab-btn.active, .day-btn.active { background: var(--primary); color: white; }
+        .day-btn { background: #fff; border: 1px solid #d1d8e0; color: #7f8c8d; }
+
+        .day-content { display: none; }
+        .day-content.active { display: block; }
+
+        .day-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid var(--primary); }
+        .day-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .day-title-row h3 { margin: 0; color: var(--primary); font-size: 18px; }
+        .date-input { border: 1px solid #d1d8e0; border-radius: 4px; padding: 3px; font-size: 12px; background: var(--light-blue); }
+        
+        .exercise-block { margin-bottom: 12px; padding: 10px; background: #f8fbff; border-radius: 8px; border: 1px solid #edf2f7; transition: 0.3s; }
+        /* Эффект зачеркивания */
+        .exercise-block.completed { opacity: 0.5; background: #f1f5f9; }
+        .exercise-block.completed .ex-title { text-decoration: line-through; color: #94a3b8; border-left-color: #cbd5e1; }
+
+        .ex-title { font-weight: bold; font-size: 13px; display: block; margin-bottom: 8px; border-left: 3px solid var(--accent); padding-left: 8px; transition: 0.3s; }
+        .column-labels { display: flex; gap: 8px; padding-left: 20px; margin-bottom: 4px; font-size: 9px; color: #94a3b8; font-weight: bold; text-transform: uppercase; }
+        .label-w { width: 50px; text-align: center; }
+        .label-r { width: 45px; text-align: center; }
+
+        .set-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        input { padding: 8px 5px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; text-align: center; }
+        .input-w { width: 50px; background: var(--light-blue); color: var(--primary); font-weight: bold; }
+        .input-r { width: 45px; }
+        input[type="checkbox"] { width: 22px; height: 22px; margin-left: auto; cursor: pointer; }
+        
+        /* Таймер с кнопками быстрой настройки */
+        #timer-widget { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #1e272e; color: white; padding: 10px 18px; border-radius: 50px; display: none; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001; }
+        .timer-display { font-size: 22px; font-weight: bold; color: #2ecc71; min-width: 65px; text-align: center; font-variant-numeric: tabular-nums; }
+        .timer-inputs { display: flex; align-items: center; gap: 2px; }
+        .timer-inputs input { width: 30px; background: transparent; border: none; color: white; font-size: 20px; outline: none; font-weight: bold; }
+        .quick-btn { background: rgba(255,255,255,0.1); border: none; color: #bdc3c7; padding: 5px 8px; border-radius: 10px; cursor: pointer; font-size: 10px; font-weight: bold; }
+        .timer-btn { background: var(--sync); border: none; color: white; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-size: 13px; font-weight: bold; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <div id="status" class="sync-status">Облако: инициализация...</div>
-    <h1>☁️ Streetlifting Cloud</h1>
-    
-    <div class="tabs" id="tabBar">
-        <button class="tab-btn active" onclick="showWeek(1)">Неделя 1</button>
-        <button class="tab-btn" onclick="showWeek(2)">Неделя 2</button>
-        <button class="tab-btn" onclick="showWeek(3)">Неделя 3</button>
-        <button class="tab-btn" onclick="showWeek(4)">Неделя 4</button>
+    <div id="status" class="sync-status">Загрузка...</div>
+    <div class="tabs">
+        <button class="tab-btn" onclick="switchWeek(1)">Неделя 1</button>
+        <button class="tab-btn" onclick="switchWeek(2)">Неделя 2</button>
+        <button class="tab-btn" onclick="switchWeek(3)">Неделя 3</button>
+        <button class="tab-btn" onclick="switchWeek(4)">Неделя 4</button>
     </div>
-
+    <div class="day-tabs">
+        <button class="day-btn" id="btn-Вторник" onclick="switchDay('Вторник')">Вт</button>
+        <button class="day-btn" id="btn-Четверг" onclick="switchDay('Четверг')">Чт</button>
+        <button class="day-btn" id="btn-Суббота" onclick="switchDay('Суббота')">Сб</button>
+    </div>
     <div id="content"></div>
 </div>
 
+<div id="timer-widget">
+    <button class="quick-btn" onclick="adjustTime(-30)">-30s</button>
+    <div id="t-setup" class="timer-inputs">
+        <input type="number" id="t-min" value="5" inputmode="numeric"><span style="opacity:0.5">:</span><input type="number" id="t-sec" value="00" inputmode="numeric">
+    </div>
+    <div id="t-display" class="timer-display" style="display:none">05:00</div>
+    <button class="quick-btn" onclick="adjustTime(30)">+30s</button>
+    <button class="timer-btn" id="t-btn" onclick="runTimer()">СТАРТ</button>
+    <button onclick="closeTimer()" style="background:none; border:none; color:#7f8c8d; cursor:pointer; font-size: 18px;">✕</button>
+</div>
+
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0THLk5N23Qm8n-aGcudKw0YmgeLzJ8KKeY9KPeM0YQiqlmLbLw_uFmygB4CCHKU1U/exec'; // <--- ВСТАВЬ ССЫЛКУ СЮДА
-    
-    const weeks = [
-        { id: 1, title: "Вработка (5х12)", weights: { d: "30", p: "15", ld: "20", lp: "10" }, reps: "12" },
-        { id: 2, title: "Объем (5х15)", weights: { d: "30", p: "15", ld: "20", lp: "10" }, reps: "15" },
-        { id: 3, title: "Пик (+5кг)", weights: { d: "35", p: "20", ld: "20", lp: "10" }, reps: "12" },
-        { id: 4, title: "Разгрузка", weights: { d: "30", p: "15", ld: "0", lp: "0" }, reps: "10" }
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0THLk5N23Qm8n-aGcudKw0YmgeLzJ8KKeY9KPeM0YQiqlmLbLw_uFmygB4CCHKU1U/exec';
+    const weeksCfg = [
+        {id: 1, t: "Вработка (5х12)", d: "30/15/20/10", r: "12"},
+        {id: 2, t: "Объем (5х15)", d: "30/15/20/10", r: "15"},
+        {id: 3, t: "Пик (+5кг)", d: "35/20/20/10", r: "12"},
+        {id: 4, t: "Разгрузка", d: "30/15/0/0", r: "10"}
     ];
 
-    // Отрисовка структуры
-    function generateContent() {
-        const container = document.getElementById('content');
-        weeks.forEach(w => {
-            const weekDiv = document.createElement('div');
-            weekDiv.id = `week${w.id}`;
-            weekDiv.className = `week-content ${w.id === 1 ? 'active' : ''}`;
-            const days = [
-                { name: "Вторник", t: "Тяж", s: w.id===4?2:5, r: w.reps, wd: w.weights.d, wp: w.weights.p },
-                { name: "Четверг", t: "Лег", s: 3, r: "10", wd: w.weights.ld, wp: w.weights.lp, note: "(3с пауза)" },
-                { name: "Суббота", t: "Тяж", s: w.id===4?2:5, r: w.reps, wd: w.weights.d, wp: w.weights.p }
-            ];
-            weekDiv.innerHTML = `<div style="text-align:center; padding:10px; color:#666;"><b>${w.title}</b></div>`;
-            days.forEach(day => {
-                weekDiv.innerHTML += `
-                    <div class="day-card">
-                        <div class="day-header"><h3>${day.name}</h3><span style="font-size:11px;">${day.t}</span></div>
-                        <div class="exercise-block">
-                            <span class="ex-title">1. Стойка + Выходы</span>
-                            <input type="text" id="w${w.id}${day.name}n" style="width:95%" placeholder="Заметки...">
-                        </div>
-                        <div class="exercise-block">
-                            <span class="ex-title">2. Брусья ${day.note || ''}</span>
-                            ${generateSets(w.id, day.name, "d", day.s, day.wd, day.r)}
-                        </div>
-                        <div class="exercise-block">
-                            <span class="ex-title">3. Турник ${day.note || ''}</span>
-                            ${generateSets(w.id, day.name, "p", day.s, day.wp, day.r)}
-                        </div>
-                        <div class="exercise-block" style="display:flex; align-items:center;">
-                            <span class="ex-title" style="margin:0;">4. Осанка</span>
-                            <input type="checkbox" id="w${w.id}${day.name}c">
-                        </div>
-                    </div>`;
-            });
-            container.appendChild(weekDiv);
-        });
-        loadFromCloud();
+    let currentWeek = 1, currentDay = "Вторник", timerInterval;
+
+    function switchWeek(n, skipSave = false) {
+        currentWeek = n;
+        document.querySelectorAll('.tab-btn').forEach((btn, idx) => btn.classList.toggle('active', idx + 1 === n));
+        updateVisibility();
+        if(!skipSave) save('active_week', n);
     }
 
-    function generateSets(wId, day, type, count, tw, tr) {
+    function switchDay(day, skipSave = false) {
+        currentDay = day;
+        document.querySelectorAll('.day-btn').forEach(btn => btn.classList.toggle('active', btn.id === `btn-${day}`));
+        updateVisibility();
+        if(!skipSave) save('active_day', day);
+    }
+
+    function updateVisibility() {
+        document.querySelectorAll('.day-content').forEach(el => el.classList.toggle('active', el.id === `w${currentWeek}${currentDay}`));
+        ["Вторник", "Четверг", "Суббота"].forEach(d => {
+            const dateVal = document.getElementById(`w${currentWeek}${d}dt`)?.value;
+            const btn = document.getElementById(`btn-${d}`);
+            const shortNames = { "Вторник": "Вт", "Четверг": "Чт", "Суббота": "Сб" };
+            if(dateVal) {
+                const parts = dateVal.split('-');
+                btn.innerText = `${shortNames[d]} (${parts[2]}.${parts[1]})`;
+            } else btn.innerText = shortNames[d];
+        });
+        checkAllProgress();
+    }
+
+    function checkAllProgress() {
+        document.querySelectorAll('.exercise-block').forEach(block => {
+            const checks = block.querySelectorAll('input[type="checkbox"]');
+            if (checks.length > 0) {
+                const allDone = Array.from(checks).every(c => c.checked);
+                block.classList.toggle('completed', allDone);
+            }
+        });
+    }
+
+    function generate() {
+        let html = '';
+        weeksCfg.forEach(w => {
+            let weights = w.d.split('/');
+            ["Вторник", "Четверг", "Суббота"].forEach(day => {
+                let isL = day === "Четверг", sets = w.id === 4 && !isL ? 2 : (isL ? 3 : 5);
+                html += `<div id="w${w.id}${day}" class="day-content">
+                    <div style="text-align:center; color:#64748b; font-size:12px; margin-bottom:10px;">${w.t}</div>
+                    <div class="day-card">
+                        <div class="day-title-row"><h3>${day}</h3><input type="date" class="date-input" id="w${w.id}${day}dt" onchange="updateVisibility()"></div>
+                        <div class="exercise-block"><span class="ex-title">1. Стойка</span><input type="text" id="w${w.id}${day}hs" style="width:94%" placeholder="..."></div>
+                        ${['Выходы','Брусья '+(isL?'(3с)':''),'Турник '+(isL?'(3с)':'')].map((name, i) => {
+                            let type = ['mu','d','p'][i], s = (i===0)?5:sets, tw = (i===0)?0:(isL?weights[i+1]:weights[i-1]), tr = (i===0)?'MAX':(isL?10:w.r);
+                            return `<div class="exercise-block"><span class="ex-title">${i+2}. ${name}</span>
+                                <div class="column-labels"><div class="label-w">Вес</div><div class="label-r">Повт</div></div>
+                                ${genSets(w.id, day, type, s, tw, tr)}</div>`;
+                        }).join('')}
+                        <div class="exercise-block"><div style="display:flex; align-items:center;"><span class="ex-title" style="margin:0">5. Осанка</span><input type="checkbox" id="w${w.id}${day}ok" onchange="checkAllProgress()"></div></div>
+                    </div>
+                </div>`;
+            });
+        });
+        document.getElementById('content').innerHTML = html;
+        load();
+    }
+
+    function genSets(wid, day, type, count, tw, tr) {
         let h = '';
         for(let i=1; i<=count; i++) {
-            let id = `w${wId}${day}${type}${i}`;
-            h += `<div class="set-row">
-                <span class="set-num">${i}</span>
-                <input type="number" class="input-w" id="${id}_w" placeholder="${tw}">
-                <input type="number" class="input-r" id="${id}_r" placeholder="${tr}">
-                <input type="checkbox" id="${id}_c">
-            </div>`;
+            let id = `w${wid}${day}${type}${i}`;
+            h += `<div class="set-row"><span style="font-size:10px; width:12px; color:#94a3b8">${i}</span>
+                <input type="number" class="input-w" id="${id}w" placeholder="${tw}"><input type="number" class="input-r" id="${id}r" placeholder="${tr}">
+                <input type="checkbox" id="${id}c" onchange="checkAllProgress(); if(this.checked)openTimer()"></div>`;
         }
         return h;
     }
 
-    function showWeek(n) {
-        document.querySelectorAll('.week-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(`week${n}`).classList.add('active');
-        document.querySelectorAll('.tab-btn')[n-1].classList.add('active');
+    function adjustTime(s) {
+        let mEl = document.getElementById('t-min'), sEl = document.getElementById('t-sec');
+        let total = parseInt(mEl.value)*60 + parseInt(sEl.value) + s;
+        if (total < 0) total = 0;
+        mEl.value = Math.floor(total/60);
+        sEl.value = String(total%60).padStart(2, '0');
     }
 
-    // ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ
-    async function saveToCloud(id, value) {
-        document.getElementById('status').innerText = 'Облако: сохранение...';
-        document.getElementById('status').className = 'sync-status loading';
-        const data = {}; data[id] = value;
+    function openTimer() {
+        if (Notification.permission !== 'granted') Notification.requestPermission();
+        document.getElementById('timer-widget').style.display = 'flex';
+        resetTimerUI();
+    }
+
+    function resetTimerUI() {
+        if(timerInterval) clearInterval(timerInterval);
+        document.getElementById('t-setup').style.display = 'flex';
+        document.getElementById('t-display').style.display = 'none';
+        document.getElementById('t-btn').innerText = 'СТАРТ';
+        document.querySelectorAll('.quick-btn').forEach(b => b.style.display = 'block');
+    }
+
+    function runTimer() {
+        let btn = document.getElementById('t-btn'), disp = document.getElementById('t-display'), setup = document.getElementById('t-setup');
+        if(btn.innerText === 'СТАРТ') {
+            let total = parseInt(document.getElementById('t-min').value)*60 + parseInt(document.getElementById('t-sec').value);
+            if(total <= 0) return;
+            setup.style.display = 'none'; disp.style.display = 'block'; btn.innerText = 'СТОП';
+            document.querySelectorAll('.quick-btn').forEach(b => b.style.display = 'none');
+            timerInterval = setInterval(() => {
+                total--;
+                disp.innerText = `${Math.floor(total/60)}:${String(total%60).padStart(2,'0')}`;
+                if(total <= 0) {
+                    clearInterval(timerInterval);
+                    if(navigator.vibrate) navigator.vibrate([500,200,500]);
+                    new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+                    if(Notification.permission==='granted') new Notification("Отдых окончен!");
+                    setTimeout(() => { alert("Пора делать подход!"); closeTimer(); }, 100);
+                }
+            }, 1000);
+        } else resetTimerUI();
+    }
+
+    function closeTimer() { clearInterval(timerInterval); document.getElementById('timer-widget').style.display = 'none'; }
+
+    async function save(id, val) {
+        document.getElementById('status').innerText = 'Синхронизация...';
         try {
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-            document.getElementById('status').innerText = 'Облако: синхронизировано';
-            document.getElementById('status').className = 'sync-status ready';
+            await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({[id]:val})});
+            document.getElementById('status').innerText = 'Сохранено';
         } catch(e) { document.getElementById('status').innerText = 'Ошибка сети'; }
     }
 
-    async function loadFromCloud() {
-        document.getElementById('status').innerText = 'Облако: загрузка...';
+    async function load() {
         try {
-            const resp = await fetch(SCRIPT_URL);
-            const data = await resp.json();
-            for (let id in data) {
-                const el = document.getElementById(id);
-                if (el) {
-                    if (el.type === 'checkbox') el.checked = (data[id] === true || data[id] === 'true');
-                    else el.value = data[id];
-                }
+            let res = await fetch(SCRIPT_URL), data = await res.json();
+            for(let id in data) {
+                let el = document.getElementById(id);
+                if(el) el.type==='checkbox' ? el.checked=(data[id]==='true'||data[id]===true) : el.value=data[id];
             }
-            document.getElementById('status').innerText = 'Облако: данные актуальны';
-            document.getElementById('status').className = 'sync-status ready';
-        } catch(e) { document.getElementById('status').innerText = 'Автономный режим'; }
+            if(data.active_week) currentWeek = parseInt(data.active_week);
+            if(data.active_day) currentDay = data.active_day;
+            switchWeek(currentWeek, true); switchDay(currentDay, true);
+            document.getElementById('status').innerText = 'Облако активно';
+        } catch(e) { switchWeek(1, true); switchDay('Вторник', true); }
     }
 
-    document.addEventListener('change', (e) => {
-        if (e.target.id) {
-            const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-            saveToCloud(e.target.id, val);
-        }
-    });
-
-    generateContent();
+    document.addEventListener('change', e => { if(e.target.id) save(e.target.id, e.target.type==='checkbox'?e.target.checked:e.target.value); });
+    generate();
 </script>
 </body>
 </html>

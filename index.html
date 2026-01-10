@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Streetlifting Cloud Pro</title>
     <style>
         :root { --primary: #2980b9; --bg: #f0f4f8; --card: #ffffff; --accent: #3498db; --sync: #27ae60; --light-blue: #e1f5fe; }
@@ -25,7 +25,6 @@
         .date-input { border: 1px solid #d1d8e0; border-radius: 4px; padding: 3px; font-size: 12px; background: var(--light-blue); }
         
         .exercise-block { margin-bottom: 12px; padding: 10px; background: #f8fbff; border-radius: 8px; border: 1px solid #edf2f7; transition: 0.3s; }
-        /* Эффект зачеркивания */
         .exercise-block.completed { opacity: 0.5; background: #f1f5f9; }
         .exercise-block.completed .ex-title { text-decoration: line-through; color: #94a3b8; border-left-color: #cbd5e1; }
 
@@ -38,14 +37,13 @@
         input { padding: 8px 5px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; text-align: center; }
         .input-w { width: 50px; background: var(--light-blue); color: var(--primary); font-weight: bold; }
         .input-r { width: 45px; }
-        input[type="checkbox"] { width: 22px; height: 22px; margin-left: auto; cursor: pointer; }
+        input[type="checkbox"] { width: 24px; height: 24px; margin-left: auto; cursor: pointer; -webkit-appearance: checkbox; }
         
-        /* Таймер с кнопками быстрой настройки */
         #timer-widget { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #1e272e; color: white; padding: 10px 18px; border-radius: 50px; display: none; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001; }
         .timer-display { font-size: 22px; font-weight: bold; color: #2ecc71; min-width: 65px; text-align: center; font-variant-numeric: tabular-nums; }
         .timer-inputs { display: flex; align-items: center; gap: 2px; }
         .timer-inputs input { width: 30px; background: transparent; border: none; color: white; font-size: 20px; outline: none; font-weight: bold; }
-        .quick-btn { background: rgba(255,255,255,0.1); border: none; color: #bdc3c7; padding: 5px 8px; border-radius: 10px; cursor: pointer; font-size: 10px; font-weight: bold; }
+        .quick-btn { background: rgba(255,255,255,0.1); border: none; color: #bdc3c7; padding: 8px 10px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .timer-btn { background: var(--sync); border: none; color: white; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-size: 13px; font-weight: bold; }
     </style>
 </head>
@@ -74,7 +72,7 @@
     <div id="t-display" class="timer-display" style="display:none">05:00</div>
     <button class="quick-btn" onclick="adjustTime(30)">+30s</button>
     <button class="timer-btn" id="t-btn" onclick="runTimer()">СТАРТ</button>
-    <button onclick="closeTimer()" style="background:none; border:none; color:#7f8c8d; cursor:pointer; font-size: 18px;">✕</button>
+    <button onclick="closeTimer()" style="background:none; border:none; color:#7f8c8d; cursor:pointer; font-size: 20px; padding: 5px;">✕</button>
 </div>
 
 <script>
@@ -87,6 +85,7 @@
     ];
 
     let currentWeek = 1, currentDay = "Вторник", timerInterval;
+    const alarmAudio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
     function switchWeek(n, skipSave = false) {
         currentWeek = n;
@@ -137,9 +136,10 @@
                     <div class="day-card">
                         <div class="day-title-row"><h3>${day}</h3><input type="date" class="date-input" id="w${w.id}${day}dt" onchange="updateVisibility()"></div>
                         <div class="exercise-block"><span class="ex-title">1. Стойка</span><input type="text" id="w${w.id}${day}hs" style="width:94%" placeholder="..."></div>
-                        ${['Выходы','Брусья '+(isL?'(3с)':''),'Турник '+(isL?'(3с)':'')].map((name, i) => {
+                        ${['Выходы','Брусья','Турник'].map((name, i) => {
                             let type = ['mu','d','p'][i], s = (i===0)?5:sets, tw = (i===0)?0:(isL?weights[i+1]:weights[i-1]), tr = (i===0)?'MAX':(isL?10:w.r);
-                            return `<div class="exercise-block"><span class="ex-title">${i+2}. ${name}</span>
+                            let title = (i > 0 && isL) ? `${name} (3с)` : name;
+                            return `<div class="exercise-block"><span class="ex-title">${i+2}. ${title}</span>
                                 <div class="column-labels"><div class="label-w">Вес</div><div class="label-r">Повт</div></div>
                                 ${genSets(w.id, day, type, s, tw, tr)}</div>`;
                         }).join('')}
@@ -157,15 +157,22 @@
         for(let i=1; i<=count; i++) {
             let id = `w${wid}${day}${type}${i}`;
             h += `<div class="set-row"><span style="font-size:10px; width:12px; color:#94a3b8">${i}</span>
-                <input type="number" class="input-w" id="${id}w" placeholder="${tw}"><input type="number" class="input-r" id="${id}r" placeholder="${tr}">
-                <input type="checkbox" id="${id}c" onchange="checkAllProgress(); if(this.checked)openTimer()"></div>`;
+                <input type="number" class="input-w" id="${id}w" placeholder="${tw}" inputmode="decimal"><input type="number" class="input-r" id="${id}r" placeholder="${tr}" inputmode="numeric">
+                <input type="checkbox" id="${id}c" onclick="handleCheck(this)"></div>`;
         }
         return h;
     }
 
+    function handleCheck(el) {
+        // Разблокируем звук для iOS/Android при первом тапе
+        alarmAudio.play().then(() => { alarmAudio.pause(); alarmAudio.currentTime = 0; }).catch(()=>{});
+        checkAllProgress();
+        if(el.checked) openTimer();
+    }
+
     function adjustTime(s) {
         let mEl = document.getElementById('t-min'), sEl = document.getElementById('t-sec');
-        let total = parseInt(mEl.value)*60 + parseInt(sEl.value) + s;
+        let total = (parseInt(mEl.value)||0)*60 + (parseInt(sEl.value)||0) + s;
         if (total < 0) total = 0;
         mEl.value = Math.floor(total/60);
         sEl.value = String(total%60).padStart(2, '0');
@@ -188,7 +195,7 @@
     function runTimer() {
         let btn = document.getElementById('t-btn'), disp = document.getElementById('t-display'), setup = document.getElementById('t-setup');
         if(btn.innerText === 'СТАРТ') {
-            let total = parseInt(document.getElementById('t-min').value)*60 + parseInt(document.getElementById('t-sec').value);
+            let total = (parseInt(document.getElementById('t-min').value)||0)*60 + (parseInt(document.getElementById('t-sec').value)||0);
             if(total <= 0) return;
             setup.style.display = 'none'; disp.style.display = 'block'; btn.innerText = 'СТОП';
             document.querySelectorAll('.quick-btn').forEach(b => b.style.display = 'none');
@@ -198,7 +205,7 @@
                 if(total <= 0) {
                     clearInterval(timerInterval);
                     if(navigator.vibrate) navigator.vibrate([500,200,500]);
-                    new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+                    alarmAudio.play();
                     if(Notification.permission==='granted') new Notification("Отдых окончен!");
                     setTimeout(() => { alert("Пора делать подход!"); closeTimer(); }, 100);
                 }
@@ -230,7 +237,8 @@
         } catch(e) { switchWeek(1, true); switchDay('Вторник', true); }
     }
 
-    document.addEventListener('change', e => { if(e.target.id) save(e.target.id, e.target.type==='checkbox'?e.target.checked:e.target.value); });
+    document.addEventListener('change', e => { if(e.target.id && e.target.type !== 'checkbox') save(e.target.id, e.target.value); });
+    document.addEventListener('click', e => { if(e.target.type === 'checkbox' && e.target.id) save(e.target.id, e.target.checked); });
     generate();
 </script>
 </body>

@@ -2,57 +2,60 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Streetlifting Analytics Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Streetlifting Pro v9.0</title>
     <style>
-        :root { --primary: #2980b9; --bg: #f0f4f8; --card: #ffffff; --accent: #3498db; --sync: #27ae60; --danger: #e74c3c; --dark: #2c3e50; }
-        * { touch-action: manipulation; box-sizing: border-box; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 10px 10px 100px; color: var(--dark); }
-        
+        :root { 
+            --primary: #2980b9; --bg: #f0f4f8; --card: #ffffff; --accent: #3498db; 
+            --sync: #27ae60; --danger: #e74c3c; --dark: #2c3e50; --warning: #f39c12; 
+        }
+        html, body { max-width: 100vw; overflow-x: hidden; position: relative; margin: 0; padding: 0; width: 100%; touch-action: manipulation; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px 10px 100px; color: var(--dark); }
+
         .header-row { display: flex; justify-content: space-between; align-items: center; padding: 5px; margin-bottom: 10px; }
         .sync-status { font-size: 11px; color: #7f8c8d; font-weight: bold; }
         .stats-trigger { background: var(--dark); border: none; border-radius: 8px; padding: 10px 15px; font-size: 13px; cursor: pointer; color: #fff; font-weight: bold; }
         
         .tabs, .day-tabs { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 10px; position: sticky; top: 0; background: var(--bg); padding: 5px 0; z-index: 100; scrollbar-width: none; }
-        .day-tabs { top: 45px; z-index: 99; border-bottom: 1px solid #d1d8e0; }
-        .tab-btn, .day-btn { flex: 1; border: none; padding: 10px 5px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 11px; background: #d1d8e0; white-space: nowrap; }
-        .tab-btn.active, .day-btn.active { background: var(--primary); color: white; }
-        .day-btn { background: #fff; border: 1px solid #d1d8e0; color: #7f8c8d; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .day-tabs { top: 45px; z-index: 99; border-bottom: 1px solid #d1d8e0; padding-bottom: 10px; }
 
-        .day-content { display: none; }
-        .day-content.active { display: block; }
-        .day-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid var(--primary); }
+        .tab-btn { flex: 1; border: none; padding: 12px 10px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 11px; background: #d1d8e0; white-space: nowrap; position: relative; color: #2c3e50; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .progress-mini { position: absolute; bottom: 0; left: 0; height: 4px; background: var(--sync); transition: width 0.3s; width: 0%; }
         
-        .exercise-block { margin-bottom: 12px; padding: 10px; background: #f8fbff; border-radius: 8px; border: 1px solid #edf2f7; }
-        .exercise-block.completed { opacity: 0.7; background: #f1f5f9; border-color: var(--sync); }
-        .ex-header { font-weight: bold; font-size: 14px; margin-bottom: 8px; color: var(--primary); }
+        .day-btn { flex: 1; border: none; padding: 10px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 11px; background: #fff; border: 1px solid #d1d8e0; }
+        .day-btn.active { background: var(--primary); color: white; }
+
+        .day-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid var(--primary); width: 100%; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         
+        .exercise-block { margin-bottom: 12px; padding: 10px; background: #f8fbff; border-radius: 8px; border: 1px solid #edf2f7; overflow: hidden; transition: opacity 0.3s ease; }
+        .exercise-block.completed { opacity: 0.35; }
+        
+        .ex-header { font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .ex-content { transition: max-height 0.3s ease-out; max-height: 1200px; }
+        .ex-content.collapsed { max-height: 0 !important; visibility: hidden; }
+        
+        .warmup-hint-btn { background: #e1f5fe; color: var(--primary); border: 1px solid var(--primary); width: 32px; height: 26px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; margin-left: auto; margin-right: 10px; }
+        .collapse-icon { font-size: 12px; color: #94a3b8; transition: transform 0.3s; }
+        .collapsed-header .collapse-icon { transform: rotate(-90deg); }
+
         .col-labels { display: flex; gap: 8px; padding-left: 23px; margin: 8px 0 2px; font-size: 9px; color: #94a3b8; font-weight: bold; }
-        .set-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-        
-        input { padding: 8px 5px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; text-align: center; }
+        .set-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+        input { padding: 8px 5px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; text-align: center; }
         .input-w { width: 55px; background: #e1f5fe; color: var(--primary); font-weight: bold; }
         .input-r { width: 45px; }
-        input[type="checkbox"] { width: 30px; height: 30px; margin-left: auto; cursor: pointer; }
-
+        .check-container { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+        input[type="checkbox"] { width: 32px; height: 32px; margin: 0; }
+        
+        .rpe-badge { font-size: 9px; width: 42px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; font-weight: 800; border: 1px solid rgba(0,0,0,0.1); }
+        
+        #timer-widget { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #1e272e; color: white; padding: 12px 20px; border-radius: 50px; display: none; align-items: center; gap: 12px; z-index: 1001; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         #stats-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: column; }
-        .stats-header { padding: 15px; background: var(--dark); color: white; display: flex; justify-content: space-between; align-items: center; }
-        .stats-nav { display: flex; background: #34495e; padding: 8px; gap: 8px; }
-        .st-tab { flex: 1; padding: 10px; border: none; background: rgba(255,255,255,0.1); color: #fff; font-size: 11px; font-weight: bold; border-radius: 6px; }
-        .st-tab.active { background: var(--accent); }
-
-        .chart-container { padding: 20px 10px; background: #fff; position: relative; height: 220px; }
-        .chart-svg { width: 100%; height: 100%; overflow: visible; }
-        .chart-line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linejoin: round; }
-        .chart-area { fill: rgba(52, 152, 219, 0.1); }
-        .chart-point { r: 7; fill: white; stroke: var(--accent); stroke-width: 3; cursor: pointer; }
-
-        .point-info-bar { display: flex; justify-content: space-around; background: var(--bg); margin: 0 10px 10px; padding: 12px; border-radius: 10px; font-size: 13px; }
-        .history-list { flex: 1; overflow-y: auto; padding: 10px; border-top: 1px solid #eee; }
-        .history-card { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
-
-        #timer-widget { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #1e272e; color: white; padding: 12px 20px; border-radius: 50px; display: none; align-items: center; gap: 15px; z-index: 1001; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .t-input { width: 35px; background: none; border: 1px solid #444; color: white; border-radius: 4px; font-size: 16px; }
+        .chart-container { padding: 20px 10px; height: 220px; position: relative; width: 100%; }
+        #warmup-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 16px; z-index: 4000; display: none; width: 85%; max-width: 300px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
@@ -60,251 +63,349 @@
 <div class="container">
     <div class="header-row">
         <div id="status" class="sync-status">Загрузка...</div>
-        <button class="stats-trigger" onclick="openStats()">📊 ПРОГРЕСС</button>
+        <div style="display:flex; gap:5px;">
+            <button class="stats-trigger" style="background:var(--sync)" onclick="openModal('new-cycle-modal')">➕ БЛОК</button>
+            <button class="stats-trigger" onclick="openStats()">📊 ПРОГРЕСС</button>
+        </div>
     </div>
-    <div class="tabs" id="week-tabs"></div>
-    <div class="day-tabs" id="day-tabs-row"></div>
+    <div id="cycle-tabs" class="tabs"></div>
+    <div id="week-tabs" class="tabs"></div>
+    <div id="day-tabs-row" class="day-tabs"></div>
     <div id="content"></div>
 </div>
 
-<div id="stats-modal">
-    <div class="stats-header">
-        <h3 style="margin:0">Аналитика</h3>
-        <button onclick="closeStats()" style="background:none; border:none; color:white; font-size:32px;">&times;</button>
-    </div>
-    <div class="stats-nav">
-        <button class="st-tab active" onclick="switchStatTab('mu', this)">ВЫХОДЫ</button>
-        <button class="st-tab" onclick="switchStatTab('d', this)">БРУСЬЯ</button>
-        <button class="st-tab" onclick="switchStatTab('p', this)">ТУРНИК</button>
-    </div>
-    <div class="chart-container" id="chart-area"></div>
-    <div class="point-info-bar" id="point-details">
-        <div>Дата: <b id="det-date">--.--</b></div>
-        <div>Вес: <b id="det-weight">0</b> кг</div>
-        <div>Повт: <b id="det-reps">0</b></div>
-    </div>
-    <div class="history-list" id="history-content"></div>
+<div id="new-cycle-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:3000; display:none; flex-direction:column; padding:20px;">
+    <h2>Генерация тренировок</h2>
+    <div style="margin-bottom:15px"><label style="display:block; font-size:12px; color:#777; margin-bottom:5px">БРУСЬЯ (база кг)</label><input type="number" id="base-d" value="30" style="width:100%; padding:15px; font-size:20px"></div>
+    <div style="margin-bottom:15px"><label style="display:block; font-size:12px; color:#777; margin-bottom:5px">ТУРНИК (база кг)</label><input type="number" id="base-p" value="20" style="width:100%; padding:15px; font-size:20px"></div>
+    <div style="margin-bottom:15px"><label style="display:block; font-size:12px; color:#777; margin-bottom:5px">ВЫХОДЫ (база кг)</label><input type="number" id="base-m" value="0" style="width:100%; padding:15px; font-size:20px"></div>
+    <button id="gen-btn" class="stats-trigger" style="width:100%; padding:20px; background:var(--sync)" onclick="createNewCycle()">СОЗДАТЬ БЛОК</button>
+    <button onclick="closeModal('new-cycle-modal')" style="margin-top:10px; background:none; border:none; color:gray">Отмена</button>
+</div>
+
+<div id="warmup-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:3999; display:none;" onclick="closeWarmup()"></div>
+<div id="warmup-modal">
+    <h3 id="warmup-title" style="margin:0 0 15px 0; text-align:center;">Разминка</h3>
+    <div id="warmup-list"></div>
+    <button class="stats-trigger" style="width:100%; margin-top:15px; background:var(--primary);" onclick="closeWarmup()">ЗАКРЫТЬ</button>
 </div>
 
 <div id="timer-widget">
-    <button style="background:none; border:1px solid #555; color:#888; border-radius:50%; width:20px; height:20px; font-size:12px;" onclick="document.getElementById('timer-widget').style.display='none'">&times;</button>
-    <div id="t-setup" style="display:flex; align-items:center; gap:5px;">
-        <input type="number" id="t-min" value="5" class="t-input">:
-        <input type="number" id="t-sec" value="00" class="t-input">
-    </div>
-    <div id="t-display" style="display:none; font-size:18px; color:var(--sync); font-weight:bold;">05:00</div>
-    <button onclick="runTimer()" id="t-btn" style="background:var(--sync); border:none; color:white; border-radius:15px; padding:6px 14px; font-weight:bold;">СТАРТ</button>
+    <div id="t-setup" style="display:flex;"><input type="number" id="t-min" value="5" style="width:40px; background:none; color:white; border:none">:<input type="number" id="t-sec" value="00" style="width:40px; background:none; color:white; border:none"></div>
+    <div id="t-display" style="display:none; font-weight:bold; color:var(--sync)">05:00</div>
+    <button id="t-btn" onclick="runTimer()" style="background:var(--sync); border:none; color:white; border-radius:15px; padding:5px 15px;">СТАРТ</button>
+    <div onclick="closeTimer()" style="color:var(--danger); font-weight:bold; cursor:pointer; margin-left:10px;">&times;</div>
+</div>
+
+<div id="stats-modal">
+    <div style="background:var(--dark); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;"><h3>Аналитика</h3><button onclick="closeStats()" style="background:none; border:none; color:white; font-size:32px;">&times;</button></div>
+    <div style="display:flex; background:#34495e; padding:10px; gap:5px; overflow-x:auto;"><button class="tab-btn active" id="st-d" onclick="updateChart('d', this)">Брусья</button><button class="tab-btn" id="st-p" onclick="updateChart('p', this)">Турник</button><button class="tab-btn" id="st-mu" onclick="updateChart('mu', this)">Выходы</button></div>
+    <div id="chart-container" class="chart-container"></div>
+    <div id="history-content" style="flex:1; overflow-y:auto; padding:10px;"></div>
 </div>
 
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0THLk5N23Qm8n-aGcudKw0YmgeLzJ8KKeY9KPeM0YQiqlmLbLw_uFmygB4CCHKU1U/exec';
-    const muPlan = [6, 5, 4, 3, 2];
-    const weeksCfg = [
-        {id: 1, w: "30/15/20/10", r: "12"}, {id: 2, w: "30/15/20/10", r: "15"},
-        {id: 3, w: "35/20/20/10", r: "12"}, {id: 4, w: "30/15/0/0", r: "10"}
-    ];
+    let curC = 1, curW = 1, curD = "Вторник", globalData = {}, tInt;
 
-    let currentWeek = 1, currentDay = "Вторник", globalData = {}, timerInterval, activeEx = 'mu';
+    // Блокировка зума
+    document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+    let lastTouch = 0;
+    document.addEventListener('touchend', (e) => { const now = Date.now(); if (now - lastTouch <= 300) e.preventDefault(); lastTouch = now; }, false);
 
-    const fmtDate = (str) => {
-        if (!str || str === "undefined" || str === "") return '--.--';
-        let clean = String(str).split('T')[0]; 
-        let parts = clean.split('-');
-        return parts.length === 3 ? `${parts[2]}.${parts[1]}` : clean;
+    const RPE_MAP = {
+        'none': { label: '—', color: '#eeeeee', text: '#7f8c8d' },
+        'easy': { label: 'easy', color: '#3498db', text: '#ffffff' },
+        'ok': { label: 'ok', color: '#27ae60', text: '#ffffff' },
+        'hard': { label: 'hard', color: '#f39c12', text: '#ffffff' },
+        'fail': { label: 'fail', color: '#e74c3c', text: '#ffffff' }
     };
 
-    function generate() {
-        const wt = document.getElementById('week-tabs');
-        weeksCfg.forEach(w => wt.innerHTML += `<button class="tab-btn" id="wbtn${w.id}" onclick="switchWeek(${w.id})">Неделя ${w.id}</button>`);
-        const dt = document.getElementById('day-tabs-row');
-        ["Вторник", "Четверг", "Суббота"].forEach(d => dt.innerHTML += `<button class="day-btn" id="btn-${d}" onclick="switchDay('${d}')">${d.substring(0,2)}</button>`);
-
-        let html = '';
-        weeksCfg.forEach(w => {
-            let wg = w.w.split('/');
-            ["Вторник", "Четверг", "Суббота"].forEach(day => {
-                let isL = (day === "Четверг"), sets = (w.id === 4 && !isL) ? 2 : (isL ? 3 : 5);
-                html += `<div id="w${w.id}${day}" class="day-content">
-                    <div class="day-card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h3 style="margin:0">${day}</h3>
-                            <input type="date" id="w${w.id}${day}dt" class="save-field-dt">
-                        </div>
-                        ${['mu','d','p'].map((type, i) => {
-                            return `<div class="exercise-block">
-                                <div class="ex-header">${['Выходы','Брусья','Турник'][i]}</div>
-                                <div class="ex-body">
-                                    <div class="col-labels"><span>ВЕС</span><span style="margin-left:36px">ПОВТ</span></div>
-                                    ${Array.from({length: (i===0?5:sets)}).map((_,si)=> {
-                                        let pW = (i === 0) ? 0 : (isL ? wg[i+1] : wg[i-1]);
-                                        let pR = (i === 0) ? muPlan[si] : (isL ? 10 : w.r);
-                                        return `<div class="set-row">
-                                            <span style="font-size:10px; color:#999">${si+1}</span>
-                                            <input type="number" class="input-w save-field" id="w${w.id}${day}${type}${si+1}w" value="${pW}">
-                                            <input type="number" class="input-r save-field" id="w${w.id}${day}${type}${si+1}r" value="${pR}">
-                                            <input type="checkbox" id="w${w.id}${day}${type}${si+1}c" class="check-field">
-                                        </div>`}).join('')}
-                                </div>
-                            </div>`;
-                        }).join('')}
-                    </div>
-                </div>`;
-            });
-        });
-        document.getElementById('content').innerHTML = html;
-        document.querySelectorAll('.save-field').forEach(el => el.addEventListener('change', (e) => save(e.target.id, e.target.value)));
-        document.querySelectorAll('.save-field-dt').forEach(el => el.addEventListener('input', (e) => save(e.target.id, e.target.value)));
-        document.querySelectorAll('.check-field').forEach(el => el.addEventListener('change', (e) => {
-            handleCheck(e.target);
-        }));
-        load();
+    async function load() {
+        try {
+            document.getElementById('status').innerText = 'Синхронизация...';
+            const res = await fetch(SCRIPT_URL + '?t=' + Date.now());
+            const data = await res.json();
+            globalData = {}; 
+            for (let key in data) { if (data[key] !== "") globalData[key] = data[key]; }
+            initInterface();
+        } catch(e) { document.getElementById('status').innerText = 'Оффлайн'; }
     }
 
-    // НОВАЯ ЛОГИКА: чекбокс сохраняет текущие числа из полей веса и повторов
-    async function handleCheck(target) {
-        const baseId = target.id.slice(0, -1); // убираем 'c' в конце
-        const wVal = document.getElementById(baseId + 'w').value;
-        const rVal = document.getElementById(baseId + 'r').value;
-        
-        // Сначала обновляем локальную базу
-        globalData[target.id] = target.checked;
-        globalData[baseId + 'w'] = wVal;
-        globalData[baseId + 'r'] = rVal;
-
-        updateComp();
-
-        // Отправляем пакет данных в облако
-        document.getElementById('status').innerText = 'Sync...';
-        try {
-            await fetch(SCRIPT_URL, {
-                method:'POST', 
-                mode:'no-cors', 
-                body:JSON.stringify({
-                    [target.id]: target.checked,
-                    [baseId + 'w']: wVal,
-                    [baseId + 'r']: rVal
-                })
-            });
-            document.getElementById('status').innerText = 'Saved';
-        } catch(e) { document.getElementById('status').innerText = 'Offline'; }
-
-        if(target.checked) { 
-            document.getElementById('timer-widget').style.display = 'flex'; 
-            resetT(); 
+    function initInterface() {
+        const maxCycle = parseInt(globalData.last_cycle_id) || 0;
+        if(maxCycle === 0) {
+            document.getElementById('status').innerText = 'Нет блоков';
+            return;
         }
+        if(!window.loaded) { curC = maxCycle; window.loaded = true; }
+        curW = parseInt(globalData[`c${curC}_actW`]) || 1;
+        curD = globalData[`c${curC}_actD`] || "Вторник";
+        renderCycles(maxCycle);
+        renderMain();
+        updateAllProgress();
+        document.getElementById('status').innerText = 'Готово';
+    }
+
+    function renderCycles(max) {
+        const ct = document.getElementById('cycle-tabs');
+        ct.innerHTML = '';
+        for(let i=1; i<=max; i++) {
+            if(!globalData[`c${i}_created`]) continue;
+            let d = new Date(globalData[`c${i}_created`]);
+            let lbl = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+            ct.innerHTML += `<button class="tab-btn ${curC==i?'active':''}" onclick="switchCycle(${i})">Блок ${lbl}</button>`;
+        }
+    }
+
+    function renderMain() {
+        const contentDiv = document.getElementById('content');
+        if (!globalData[`c${curC}_created`]) {
+            contentDiv.innerHTML = '<center style="padding:40px">Блок не найден</center>';
+            return;
+        }
+
+        let html = `<div class="day-card">
+            <div class="card-header">
+                <h3 style="margin:0">${curD}</h3>
+                <input type="date" id="c${curC}_w${curW}${curD}dt" style="font-size:12px; padding:5px; border-radius:6px; border:1px solid #ddd" value="${(globalData[`c${curC}_w${curW}${curD}dt`]||'').split('T')[0]}" onchange="save(this.id, this.value)">
+            </div>`;
+        
+        ['mu','d','p'].forEach(type => {
+            const name = type==='mu'?'Выходы':(type==='d'?'Брусья':'Турник');
+            const blockId = `${curC}${curW}${curD}${type}`;
+            const sMax = getSetsCount(type, curW, curD);
+            let allChecked = true;
+            let blockHtml = '';
+
+            for(let s=1; s<=sMax; s++) {
+                let id = `c${curC}_w${curW}${curD}${type}${s}`;
+                let isChecked = globalData[id+'c'] == 'true' || globalData[id+'c'] === true;
+                if(!isChecked) allChecked = false;
+                
+                blockHtml += `<div class="set-row">
+                    <span style="width:15px; font-size:10px; color:#999">${s}</span>
+                    <input type="number" class="input-w" id="${id}w" value="${globalData[id+'w']||0}" onchange="save(this.id, this.value)">
+                    <input type="number" class="input-r" id="${id}r" value="${globalData[id+'r']||0}" onchange="save(this.id, this.value)">
+                    <div class="check-container">
+                        <div id="${id}rpe" class="rpe-badge" onclick="cycleRPE('${id}')"></div>
+                        <input type="checkbox" id="${id}c" ${isChecked?'checked':''} onchange="hCh(this, '${blockId}')">
+                    </div>
+                </div>`;
+                setTimeout(() => applyRPEStyle(document.getElementById(id+'rpe'), globalData[id+'rpe']||'none'), 0);
+            }
+
+            html += `<div id="block-${blockId}" class="exercise-block ${allChecked?'completed':''}">
+                <div class="ex-header" onclick="toggleBlock('${blockId}', this)">
+                    <span>${name}</span>
+                    <button class="warmup-hint-btn" onclick="event.stopPropagation(); showWarmup('${name}','${type}')">💡</button>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div id="content-${blockId}" class="ex-content">
+                    <div class="col-labels"><span>ВЕС</span><span style="margin-left:35px">ПОВТ</span><span>RPE / ГОТОВО</span></div>
+                    ${blockHtml}
+                </div></div>`;
+        });
+        contentDiv.innerHTML = html + `</div>`;
+        renderTabsUI();
     }
 
     async function save(id, val) {
         globalData[id] = val;
-        document.getElementById('status').innerText = 'Sync...';
-        try { 
-            await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({[id]:val})});
-            document.getElementById('status').innerText = 'Saved';
-        } catch(e) { document.getElementById('status').innerText = 'Offline'; }
+        document.getElementById('status').innerText = 'Запись...';
+        await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({[id]:val})});
+        document.getElementById('status').innerText = 'Готово';
     }
 
-    async function load() {
-        try {
-            const res = await fetch(SCRIPT_URL);
-            const data = await res.json();
-            globalData = data;
-            for(let id in data) {
-                let el = document.getElementById(id);
-                if(el) {
-                    if(el.type === 'checkbox') el.checked = (data[id] === 'true' || data[id] === true);
-                    else if(el.type === 'date') el.value = data[id].split('T')[0];
-                    else el.value = data[id];
+    async function hCh(target, blockId) {
+        const dtI = document.getElementById(`c${curC}_w${curW}${curD}dt`);
+        if(target.checked && !dtI.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dtI.value = today; save(dtI.id, today);
+        }
+        globalData[target.id] = target.checked;
+        save(target.id, target.checked);
+        
+        const block = document.getElementById('block-'+blockId);
+        const checks = block.querySelectorAll('input[type="checkbox"]');
+        let allDone = true;
+        checks.forEach(c => { if(!c.checked) allDone = false; });
+        block.classList.toggle('completed', allDone);
+
+        updateAllProgress();
+        if(target.checked) { document.getElementById('timer-widget').style.display='flex'; resetT(); }
+    }
+
+    async function createNewCycle() {
+    const btn = document.getElementById('gen-btn');
+    btn.disabled = true; 
+    btn.innerText = 'МГНОВЕННАЯ ЗАПИСЬ...';
+    
+    let nId = (parseInt(globalData.last_cycle_id) || 0) + 1;
+    let plan = {};
+    
+    // 1. Создаем мета-данные
+    plan[`c${nId}_created`] = new Date().toISOString();
+    plan[`c${nId}_actW`] = 1;
+    plan[`c${nId}_actD`] = "Вторник";
+    plan[`last_cycle_id`] = nId;
+
+    const bD = parseFloat(document.getElementById('base-d').value) || 0;
+    const bP = parseFloat(document.getElementById('base-p').value) || 0;
+    const bM = parseFloat(document.getElementById('base-m').value) || 0;
+
+    // 2. Генерируем весь массив данных в памяти
+    [1,2,3,4].forEach(w => {
+        ["Вторник", "Четверг", "Суббота"].forEach(day => {
+            ['mu','d','p'].forEach(ex => {
+                let base = (ex === 'mu' ? bM : (ex === 'd' ? bD : bP));
+                let sMax = getSetsCount(ex, w, day);
+                for(let s = 1; s <= sMax; s++) {
+                    let wt = 0, rp = 0;
+                    if(ex === 'mu'){ 
+                        wt = base; 
+                        rp = (w === 4) ? [3,2,1,1,1][s-1] : [6,5,4,3,2][s-1]; 
+                    } else {
+                        if(day === "Четверг") { wt = Math.floor(base * 0.5); rp = 10; } 
+                        else { 
+                            if(w === 1){ wt = base; rp = 12 } 
+                            else if(w === 2){ wt = base; rp = 15 } 
+                            else if(w === 3){ wt = base + 5; rp = 12 } 
+                            else { wt = base; rp = 10 } 
+                        }
+                    }
+                    let id = `c${nId}_w${w}${day}${ex}${s}`;
+                    plan[id+'w'] = wt; 
+                    plan[id+'r'] = rp; 
+                    plan[id+'c'] = false; 
+                    plan[id+'rpe'] = 'none';
                 }
-            }
-            if(data.active_week) switchWeek(parseInt(data.active_week), true);
-            if(data.active_day) switchDay(data.active_day, true);
-            document.getElementById('status').innerText = 'Cloud Active';
-        } catch(e) { switchWeek(1, true); }
+            });
+        });
+    });
+
+    // 3. ОТПРАВЛЯЕМ ВСЁ ОДНИМ ПАКЕТОМ
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST', 
+            mode: 'no-cors', // Это важно для Google Script
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(plan)
+        });
+        
+        // Обновляем локальные данные сразу после отправки
+        Object.assign(globalData, plan);
+        curC = nId;
+        closeModal('new-cycle-modal');
+        initInterface(); 
+    } catch(e) {
+        alert('Ошибка при сохранении: ' + e);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = 'СОЗДАТЬ БЛОК';
+    }
+}
+
+    // Все остальные функции без изменений для сохранения стабильности
+    function updateChart(type, btn) {
+        document.querySelectorAll('#stats-modal .tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const hCont = document.getElementById('history-content'), cArea = document.getElementById('chart-container');
+        let history = [];
+        for(let w=1; w<=4; w++){
+            ["Вторник", "Четверг", "Суббота"].forEach(day => {
+                let date = globalData[`c${curC}_w${w}${day}dt`];
+                let sets = [];
+                let fw = null;
+                for(let s=1; s<=getSetsCount(type, w, day); s++) {
+                    let id = `c${curC}_w${w}${day}${type}${s}`;
+                    if(globalData[id+'c'] == 'true' || globalData[id+'c'] === true) {
+                        sets.push(`${globalData[id+'w']}×${globalData[id+'r']}`);
+                        if(fw === null) fw = parseFloat(globalData[id+'w']);
+                    }
+                }
+                if(date && sets.length) history.push({ date, weight: fw, sets: sets.join(', ') });
+            });
+        }
+        if(!history.length) { hCont.innerHTML = '<center>Нет данных</center>'; cArea.innerHTML=''; return; }
+        history.sort((a,b)=>new Date(a.date)-new Date(b.date));
+        const W=cArea.clientWidth, H=180;
+        const weights=history.map(h=>h.weight), minW=Math.min(...weights), maxW=Math.max(...weights), rng=(maxW-minW)||10;
+        const pts=history.map((h,i)=>({x:(i*(W-60)/(history.length-1||1))+30, y:H-((h.weight-minW)/rng*(H-60))-30}));
+        cArea.innerHTML = `<svg width="${W}" height="${H}">
+            ${pts.map((p,i)=>i>0?`<line x1="${pts[i-1].x}" y1="${pts[i-1].y}" x2="${p.x}" y2="${p.y}" stroke="var(--accent)" stroke-width="3"/>`:'').join('')}
+            ${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="5" fill="var(--primary)" stroke="white" stroke-width="2"/>`).join('')}
+            ${pts.map((p,i)=>`<text x="${p.x}" y="${p.y-12}" font-size="10" text-anchor="middle" font-weight="bold">${history[i].weight}</text>`).join('')}
+        </svg>`;
+        hCont.innerHTML = history.reverse().map(h=>`<div style="padding:12px; border-bottom:1px solid #eee"><b>${new Date(h.date).toLocaleDateString()}</b>: ${h.weight}кг <br><small>${h.sets}</small></div>`).join('');
     }
 
-    function switchWeek(n, s) { currentWeek = n; document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.id === `wbtn${n}`)); update(); if(!s) save('active_week', n); }
-    function switchDay(d, s) { currentDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.toggle('active', b.id === `btn-${d}`)); update(); if(!s) save('active_day', d); }
-    function update() { document.querySelectorAll('.day-content').forEach(el => el.classList.toggle('active', el.id === `w${currentWeek}${currentDay}`)); updateComp(); }
-    function updateComp() { document.querySelectorAll('.exercise-block').forEach(b => { const c = b.querySelectorAll('.check-field'); if(c.length) b.classList.toggle('completed', Array.from(c).every(i => i.checked)); }); }
+    function showWarmup(name, type) {
+        const id1 = `c${curC}_w${curW}${curD}${type}1w`;
+        const fW = parseFloat(globalData[id1] || 0);
+        const list = document.getElementById('warmup-list'); list.innerHTML = '';
+        const reps = type === 'mu' ? [5, 4, 3] : [12, 10, 8];
+        [40, 60, 80].forEach((p, i) => {
+            let w = Math.round((fW * p / 100) / 2.5) * 2.5;
+            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee"><b>${p}% (${w} кг)</b> <span>${reps[i]} повт.</span></div>`;
+        });
+        document.getElementById('warmup-title').innerText = name;
+        document.getElementById('warmup-overlay').style.display = 'block';
+        document.getElementById('warmup-modal').style.display = 'block';
+    }
 
-    function resetT() { if(timerInterval) clearInterval(timerInterval); document.getElementById('t-display').style.display='none'; document.getElementById('t-setup').style.display='flex'; document.getElementById('t-btn').innerText = 'СТАРТ'; }
+    function toggleBlock(id, header) { document.getElementById('content-' + id).classList.toggle('collapsed'); header.classList.toggle('collapsed-header'); }
+    function closeWarmup() { document.getElementById('warmup-overlay').style.display = 'none'; document.getElementById('warmup-modal').style.display = 'none'; }
+    function openStats() { openModal('stats-modal'); updateChart('d', document.getElementById('st-d')); }
+    function closeStats() { closeModal('stats-modal'); }
+    function applyRPEStyle(el, val) { const conf = RPE_MAP[val] || RPE_MAP['none']; if(el){el.innerText = conf.label; el.style.backgroundColor = conf.color; el.style.color = conf.text;} }
+    function cycleRPE(id) {
+        const stages = ['none', 'easy', 'ok', 'hard', 'fail'];
+        let cur = globalData[id+'rpe'] || 'none';
+        let next = stages[(stages.indexOf(cur) + 1) % stages.length];
+        applyRPEStyle(document.getElementById(id+'rpe'), next);
+        save(id+'rpe', next);
+    }
+    function renderTabsUI() {
+        const wt = document.getElementById('week-tabs'); wt.innerHTML = '';
+        [1,2,3,4].forEach(i => wt.innerHTML += `<button class="tab-btn ${curW==i?'active':''}" onclick="switchWeek(${i})">Нед ${i}<div class="progress-mini" id="pbar${i}"></div></button>`);
+        const dt = document.getElementById('day-tabs-row'); dt.innerHTML = '';
+        ["Вторник", "Четверг", "Суббота"].forEach(d => dt.innerHTML += `<button class="day-btn ${curD==d?'active':''}" onclick="switchDay('${d}')">${d.substring(0,2)}</button>`);
+    }
+    function updateAllProgress() {
+        [1,2,3,4].forEach(w => {
+            let t = 0, c = 0;
+            ["Вторник", "Четверг", "Суббота"].forEach(day => {
+                ['mu','d','p'].forEach(ex => {
+                    let sMax = getSetsCount(ex, w, day);
+                    for(let s=1; s<=sMax; s++) { t++; if(globalData[`c${curC}_w${w}${day}${ex}${s}c`] == 'true' || globalData[`c${curC}_w${w}${day}${ex}${s}c`] === true) c++; }
+                });
+            });
+            if(document.getElementById(`pbar${w}`)) document.getElementById(`pbar${w}`).style.width = (c/t*100) + '%';
+        });
+    }
+    function getSetsCount(type, week, day) { if (type === 'mu') return 5; if (day === "Четверг") return 3; if (week === 4) return 2; return 5; }
+    function resetT() { if(tInt) clearInterval(tInt); document.getElementById('t-display').style.display='none'; document.getElementById('t-setup').style.display='flex'; document.getElementById('t-btn').innerText = 'СТАРТ'; }
+    function closeTimer() { document.getElementById('timer-widget').style.display = 'none'; resetT(); }
     function runTimer() {
         let btn = document.getElementById('t-btn'), disp = document.getElementById('t-display'), setup = document.getElementById('t-setup');
         if(btn.innerText === 'СТАРТ') {
             btn.innerText = 'СТОП';
             let t = (parseInt(document.getElementById('t-min').value)||0)*60 + (parseInt(document.getElementById('t-sec').value)||0);
-            if(t <= 0) t = 300;
             setup.style.display = 'none'; disp.style.display = 'block';
-            timerInterval = setInterval(() => {
-                let m = Math.floor(t/60), s = t%60;
-                disp.innerText = `${m}:${s<10?'0':''}${s}`;
-                if(--t < 0) { clearInterval(timerInterval); btn.innerText = 'ОК'; }
+            tInt = setInterval(() => {
+                let m = Math.floor(t/60), s = t%60; disp.innerText = `${m}:${s<10?'0':''}${s}`;
+                if(--t < 0) { clearInterval(tInt); btn.innerText = 'ОК'; }
             }, 1000);
         } else { resetT(); if(btn.innerText === 'ОК') document.getElementById('timer-widget').style.display = 'none'; }
     }
+    function switchCycle(n) { curC = n; initInterface(); }
+    function switchWeek(n) { curW = n; renderMain(); save(`c${curC}_actW`, n); updateAllProgress(); }
+    function switchDay(d) { curD = d; renderMain(); save(`c${curC}_actD`, d); updateAllProgress(); }
+    function openModal(id){ document.getElementById(id).style.display='flex'; }
+    function closeModal(id){ document.getElementById(id).style.display='none'; }
 
-    function openStats() { document.getElementById('stats-modal').style.display = 'flex'; renderStats(); }
-    function closeStats() { document.getElementById('stats-modal').style.display = 'none'; }
-    function switchStatTab(ex, btn) { activeEx = ex; document.querySelectorAll('.st-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderStats(); }
-
-    function renderStats() {
-        const hCont = document.getElementById('history-content');
-        const cArea = document.getElementById('chart-area');
-        let history = [];
-
-        for(let w=1; w<=4; w++) {
-            ["Вторник", "Четверг", "Суббота"].forEach(day => {
-                let mW = 0, tR = 0, has = false;
-                let dDt = globalData[`w${w}${day}dt`] || "";
-
-                for(let s=1; s<=5; s++){
-                    // ТЕПЕРЬ СТРОГО ПРОВЕРЯЕМ ТОЛЬКО ВЫПОЛНЕННЫЕ ЧЕКБОКСАМИ ПОДХОДЫ
-                    let isDone = globalData[`w${w}${day}${activeEx}${s}c`] === 'true' || globalData[`w${w}${day}${activeEx}${s}c`] === true;
-                    if(isDone) {
-                        has = true;
-                        let wv = parseFloat(globalData[`w${w}${day}${activeEx}${s}w`]);
-                        let rv = parseFloat(globalData[`w${w}${day}${activeEx}${s}r`]);
-                        if(!isNaN(wv) && wv > mW) mW = wv;
-                        if(!isNaN(rv)) tR += rv;
-                    }
-                }
-                if(has) history.push({date: dDt, weight: mW, reps: tR, day: day});
-            });
-        }
-
-        if(!history.length) { hCont.innerHTML = '<p style="text-align:center; padding:20px;">Отметьте выполненные подходы галочкой</p>'; cArea.innerHTML = ''; return; }
-        history.sort((a,b) => (a.date || "0") > (b.date || "0") ? 1 : -1);
-
-        const weights = history.map(x => x.weight), minW = Math.min(...weights), maxW = Math.max(...weights);
-        const range = (maxW - minW) || 10;
-        const W = cArea.clientWidth - 40, H = 180;
-
-        const pts = history.map((h, i) => ({
-            x: (i * W / (history.length > 1 ? history.length - 1 : 1)) + 20,
-            y: H - ((h.weight - minW) / range * (H-60)) - 30,
-            h: h
-        }));
-
-        cArea.innerHTML = `<svg class="chart-svg" viewBox="0 0 ${cArea.clientWidth} ${H}">
-            <path class="chart-area" d="M ${pts[0].x} ${H} L ${pts.map(p=>`${p.x} ${p.y}`).join(' L ')} L ${pts[pts.length-1].x} ${H} Z" />
-            <path class="chart-line" d="M ${pts.map(p=>`${p.x} ${p.y}`).join(' L ')}" />
-            ${pts.map(p=>`<circle class="chart-point" cx="${p.x}" cy="${p.y}" onclick="showDet('${p.h.date}',${p.h.weight},${p.h.reps})"/>`).join('')}
-        </svg>`;
-
-        hCont.innerHTML = history.slice().reverse().map(h => `
-            <div class="history-card">
-                <div><b>${fmtDate(h.date)}</b><br><small>${h.day}</small></div>
-                <div style="text-align:right"><b>${h.weight} кг</b><br><small>${h.reps} повт</small></div>
-            </div>`).join('');
-    }
-
-    function showDet(d,w,r) {
-        document.getElementById('det-date').innerText = fmtDate(d);
-        document.getElementById('det-weight').innerText = w;
-        document.getElementById('det-reps').innerText = r;
-    }
-
-    generate();
+    load();
 </script>
 </body>
 </html>

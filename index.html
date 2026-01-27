@@ -56,7 +56,37 @@
         #stats-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: column; }
         .chart-container { padding: 20px 10px; height: 220px; position: relative; width: 100%; }
         #warmup-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 16px; z-index: 4000; display: none; width: 85%; max-width: 300px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    
+        
+    
+    
+    /* выгрузка */
+@media print {
+    body * { visibility: hidden; }
+    #print-section, #print-section * { visibility: visible; }
+    #print-section { position: absolute; left: 0; top: 0; width: 100%; background: white; color: #000; }
+    .page-break { page-break-after: always; padding: 15px; box-sizing: border-box; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 4px; table-layout: fixed; border: 1.2px solid #000; }
+    th, td { border: 1px solid #000; padding: 2px; text-align: center; font-size: 8pt; overflow: hidden; }
+    
+    /* Новые пропорции колонок */
+    .col-name { width: 40%; text-align: left !important; padding-left: 5px !important; font-size: 7.5pt !important; }
+    .col-set { width: 12%; }
+
+    .bg-done { background-color: #d4edda !important; -webkit-print-color-adjust: exact; }
+    .bg-missed { background-color: #f8d7da !important; -webkit-print-color-adjust: exact; }
+    
+    .chart-svg { width: 100%; height: 80px; margin-top: 5px; }
+    .chart-line { fill: none; stroke: #2980b9; stroke-width: 2; }
+    .chart-point { fill: #2c3e50; }
+}
+    
+    
+    
+    
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -66,6 +96,7 @@
         <div style="display:flex; gap:5px;">
             <button class="stats-trigger" style="background:var(--sync)" onclick="openModal('new-cycle-modal')">➕ БЛОК</button>
             <button class="stats-trigger" onclick="openStats()">📊 ПРОГРЕСС</button>
+            <button onclick="generatePrintVersion()">📥 СКАЧАТЬ PDF</button>
         </div>
     </div>
     <div id="cycle-tabs" class="tabs"></div>
@@ -81,6 +112,23 @@
     <div style="margin-bottom:15px"><label style="display:block; font-size:12px; color:#777; margin-bottom:5px">ВЫХОДЫ (база кг)</label><input type="number" id="base-m" value="0" style="width:100%; padding:15px; font-size:20px"></div>
     <button id="gen-btn" class="stats-trigger" style="width:100%; padding:20px; background:var(--sync)" onclick="createNewCycle()">СОЗДАТЬ БЛОК</button>
     <button onclick="closeModal('new-cycle-modal')" style="margin-top:10px; background:none; border:none; color:gray">Отмена</button>
+</div>
+
+
+
+<div id="notes-block" class="exercise-block" style="margin-top: 20px;">
+    <div class="ex-header" onclick="toggleNotes()">
+        <span>📝 Заметки к блоку</span>
+        <span id="notes-icon" class="collapse-icon" style="transform: rotate(-90deg);">▼</span>
+    </div>
+    <div id="notes-content" class="ex-content collapsed">
+        <div style="padding: 10px 0;">
+            <textarea id="cycle-notes" 
+                      placeholder="Сон, питание, травмы, списки через '-'..." 
+                      style="width: 100%; min-height: 100px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; font-size: 14px; box-sizing: border-box; resize: none; overflow: hidden;"
+                      oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; syncNotes(this.value)"></textarea>
+        </div>
+    </div>
 </div>
 
 <div id="warmup-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:3999; display:none;" onclick="closeWarmup()"></div>
@@ -144,6 +192,7 @@
         renderCycles(maxCycle);
         renderMain();
         updateAllProgress();
+        refreshNotesField();
         document.getElementById('status').innerText = 'Готово';
     }
 
@@ -354,6 +403,197 @@
         document.getElementById('warmup-modal').style.display = 'block';
     }
 
+// выгрузка
+function generatePrintVersion() {
+    const old = document.getElementById('print-section');
+    if (old) old.remove();
+
+    const printSection = document.createElement('div');
+    printSection.id = 'print-section';
+    
+    const lastId = parseInt(globalData.last_cycle_id) || 0;
+    let fullHtml = '';
+
+    for (let c = 1; c <= lastId; c++) {
+        if (!globalData[`c${c}_created`]) continue;
+        const dateStr = new Date(globalData[`c${c}_created`]).toLocaleDateString('ru-RU');
+        let stats = { mu: [], d: [], p: [] };
+
+        fullHtml += `<div class="page-break" style="page-break-after: always; padding: 15px; font-family: sans-serif;">
+            <div style="display:flex; justify-content:space-between; border-bottom:2px solid #2c3e50; padding-bottom:3px; margin-bottom:8px;">
+                <h1 style="font-size:13pt; margin:0; color:#2c3e50;">БЛОК №${c}</h1>
+                <span style="font-size:9pt;">Создан: ${dateStr}</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">`;
+
+        for (let w = 1; w <= 4; w++) {
+            fullHtml += `<div>
+                <div style="background:#2c3e50; color:#fff; text-align:center; font-weight:bold; font-size:8pt; padding:2px;">НЕДЕЛЯ ${w}</div>`;
+            
+            ["Вторник", "Четверг", "Суббота"].forEach(day => {
+                let dayTotalVolume = 0; // Сумма за весь день
+
+                let tableRowsHtml = '';
+                [['mu','Выходы на две'], ['d','Отжимания на брусьях'], ['p','Подтягивания на турнике']].forEach(([type, fullName]) => {
+                    const sMax = (type === 'mu') ? 5 : (day === "Четверг" ? 3 : (w === 4 ? 2 : 5));
+                    let exerciseVolume = 0;
+                    let cellsHtml = '';
+                    
+                    for(let s=1; s<=5; s++) {
+                        const id = `c${c}_w${w}${day}${type}${s}`;
+                        if (s <= sMax) {
+                            const pW = parseFloat(globalData[id+'w']) || 0;
+                            const pR = parseInt(globalData[id+'r']) || 0;
+                            const isDone = globalData[id+'c'] === 'true' || globalData[id+'c'] === true;
+                            
+                            if(isDone) {
+                                exerciseVolume += (pW * pR);
+                                if(s === 1) stats[type].push(pW);
+                            }
+
+                            cellsHtml += `<td style="width:10%; border:1px solid #000; text-align:center; line-height:1.1; background:${isDone ? '#d4edda' : '#f8d7da'}; -webkit-print-color-adjust: exact;">
+                                <div style="font-weight:bold; font-size:7.5pt;">${pW}</div>
+                                <div style="font-size:6pt; border-top:0.5px solid rgba(0,0,0,0.1);">${pR}</div>
+                            </td>`;
+                        } else {
+                            cellsHtml += `<td style="width:10%; border:1px solid #000; background:#f0f0f0;"></td>`;
+                        }
+                    }
+
+                    dayTotalVolume += exerciseVolume;
+                    tableRowsHtml += `<tr>
+                        <td style="width:50%; text-align:left; padding-left:3px; border:1px solid #000; font-size:7pt;">
+                            <b>${fullName}</b><br>
+                            <span style="font-size:5.5pt; color:#7f8c8d;">Объем: ${exerciseVolume} кг</span>
+                        </td>
+                        ${cellsHtml}
+                    </tr>`;
+                });
+
+                fullHtml += `
+                <table style="width:100%; border-collapse: collapse; margin-top:3px; table-layout: fixed; border: 1px solid #000;">
+                    <thead>
+                        <tr style="background:#eee;">
+                            <th colspan="6" style="font-size:7pt; border:1px solid #000; padding:1px; position:relative;">
+                                ${day} 
+                                <span style="position:absolute; right:5px; font-weight:normal; color:#555;">∑ ${dayTotalVolume} кг</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRowsHtml}</tbody>
+                </table>`;
+            });
+            fullHtml += `</div>`;
+        }
+        fullHtml += `</div>`;
+
+        // ГРАФИКИ
+        fullHtml += `<div style="display: flex; flex-direction: column; gap: 6px;">`;
+        [['mu','Выходы на две'], ['d','Отжимания на брусьях'], ['p','Подтягивания на турнике']].forEach(([t, label]) => {
+            const shortKey = t === 'mu' ? 'mu' : (t === 'd' ? 'd' : 'p');
+            const weights = stats[shortKey];
+            if (!weights.length) return;
+
+            const n = weights.length;
+            const maxW = Math.max(...weights, 1);
+            const minW = Math.min(...weights);
+            const range = (maxW - minW) || 10;
+
+            let sX=0, sY=0, sXY=0, sX2=0;
+            weights.forEach((y, x) => { sX+=x; sY+=y; sXY+=x*y; sX2+=x*x; });
+            const m = n > 1 ? (n*sXY - sX*sY) / (n*sX2 - sX*sX) : 0;
+            const b = (sY - m*sX) / n;
+
+            const getP = (val, i) => ({
+                x: (i / (n - 1 || 1)) * 360 + 20,
+                y: 45 - ((val - minW) / range) * 30
+            });
+
+            const pts = weights.map((v, i) => `${getP(v, i).x},${getP(v, i).y}`).join(' ');
+            const tS = getP(b, 0);
+            const tE = getP(m * (n - 1) + b, n - 1);
+
+            fullHtml += `
+            <div style="width:100%; border:1px solid #bdc3c7; padding:4px; height:70px; background:#fff;">
+                <div style="font-size:7pt; font-weight:bold; margin-bottom:2px; display:flex; justify-content:space-between; padding:0 10px;">
+                    <span>${label}</span>
+                    <span style="font-size:5.5pt; color:#27ae60;">Линия тренда (прогресс)</span>
+                </div>
+                <svg viewBox="0 0 400 55" style="width:100%; height:55px;">
+                    <line x1="20" y1="45" x2="380" y2="45" stroke="#7f8c8d" stroke-width="1" />
+                    <line x1="${tS.x}" y1="${tS.y}" x2="${tE.x}" y2="${tE.y}" stroke="#27ae60" stroke-width="1" stroke-dasharray="4,2" opacity="0.6" />
+                    <polyline points="${pts}" fill="none" stroke="#2980b9" stroke-width="1.5" />
+                    ${weights.map((v, i) => {
+                        const p = getP(v, i);
+                        return `<circle cx="${p.x}" cy="${p.y}" r="2" fill="#2c3e50" />
+                                <text x="${p.x}" y="${p.y-4}" font-size="6" font-weight="bold" text-anchor="middle">${v}</text>`;
+                    }).join('')}
+                </svg>
+            </div>`;
+        });
+        fullHtml += `</div>`;
+
+        // ЗАМЕТКИ СО СПИСКАМИ
+        let rawNotes = globalData[`c${c}_notes`] || "Заметки не добавлены.";
+        let formattedNotes = rawNotes
+            .replace(/\n/g, '<br>')
+            .replace(/^- (.*)/gm, '<li>$1</li>')
+            .replace(/^(\d+)\. (.*)/gm, '<li>$2</li>');
+        if (formattedNotes.includes('<li>')) formattedNotes = `<ul style="margin: 0; padding-left: 15px;">${formattedNotes}</ul>`;
+
+        fullHtml += `
+        <div style="margin-top: 10px; padding: 8px; border: 1px solid #2c3e50; background: #fdfdfd;">
+            <div style="font-size: 8pt; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 4px;">📝 ЗАМЕТКИ БЛОКА:</div>
+            <div style="font-size: 7.5pt; color: #333; line-height: 1.3;">${formattedNotes}</div>
+        </div>`;
+
+        fullHtml += `</div>`;
+    }
+
+    printSection.innerHTML = fullHtml;
+    document.body.appendChild(printSection);
+    window.print();
+}
+
+// заметки
+// Функция синхронизации: вызывается при вводе текста
+function syncNotes(text) {
+    const cId = curC; // Используем текущий выбранный цикл
+    if (!cId) return;
+
+    const key = `c${cId}_notes`;
+    globalData[key] = text; 
+    
+    // Заменяем на твою рабочую функцию сохранения
+    save(key, text); 
+}
+
+// Добавь вызов этой функции в то место, где ты переключаешь циклы или загружаешь данные
+function refreshNotesField() {
+    const cId = curC; // текущий выбранный цикл
+    const field = document.getElementById('cycle-notes');
+    if (field) {
+        field.value = globalData[`c${cId}_notes`] || "";
+        // Подгоняем высоту под текст
+        field.style.height = '';
+        field.style.height = field.scrollHeight + 'px';
+    }
+}
+
+
+
+// сворачивание
+function toggleNotes() {
+    const content = document.getElementById('notes-content');
+    const icon = document.getElementById('notes-icon');
+    
+    const isCollapsed = content.classList.toggle('collapsed');
+    
+    // Анимация иконки: 0 если открыто, -90 если закрыто
+    icon.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+}
+
     function toggleBlock(id, header) { document.getElementById('content-' + id).classList.toggle('collapsed'); header.classList.toggle('collapsed-header'); }
     function closeWarmup() { document.getElementById('warmup-overlay').style.display = 'none'; document.getElementById('warmup-modal').style.display = 'none'; }
     function openStats() { openModal('stats-modal'); updateChart('d', document.getElementById('st-d')); }
@@ -404,6 +644,10 @@
     function switchDay(d) { curD = d; renderMain(); save(`c${curC}_actD`, d); updateAllProgress(); }
     function openModal(id){ document.getElementById(id).style.display='flex'; }
     function closeModal(id){ document.getElementById(id).style.display='none'; }
+
+
+
+
 
     load();
 </script>

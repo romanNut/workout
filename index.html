@@ -602,15 +602,22 @@ function refreshNotesField() {
 }
 
 // формирование скриншота
+// Сначала подключаем библиотеку для скриншотов (добавь это в начало своего скрипта или в HTML)
+if (!document.getElementById('html2canvas-lib')) {
+    const script = document.createElement('script');
+    script.id = 'html2canvas-lib';
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    document.head.appendChild(script);
+}
+
+
 function generateShareCard() {
     let dayTotal = 0;
     let totalSets = 0;
     let activeExercises = [];
     
     const types = [
-        {id: 'mu', name: 'Выходы'}, 
-        {id: 'd', name: 'Брусья'}, 
-        {id: 'p', name: 'Турник'}
+        {id: 'mu', name: 'Выходы'}, {id: 'd', name: 'Брусья'}, {id: 'p', name: 'Турник'}
     ];
 
     types.forEach(ex => {
@@ -632,27 +639,28 @@ function generateShareCard() {
         }
     });
 
-    if(dayTotal === 0) { alert("Данные не найдены!"); return; }
+    if(dayTotal === 0) return;
 
     const count = activeExercises.length;
-    const weightFontSize = count > 2 ? '19px' : '23px';
-    const rowGap = count > 2 ? '0' : '4px';
+    // Оптимизировали размеры, чтобы текст не сползал при любом количестве блоков
+    const weightFontSize = count > 2 ? '18px' : '22px';
+    const rowPadding = count > 2 ? '1px' : '3px';
 
     const exercisesHtml = activeExercises.map(ex => `
-        <div style="background:#f2f2f7; border-radius:20px; padding:12px; display: flex; flex-direction: column; min-height: 0; border: 1px solid #e5e5ea; box-sizing: border-box; overflow: hidden;">
-            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 8px; padding: 0 4px; flex-shrink: 0;">
-                <span style="font-size: 14px; font-weight:900; color:#000; letter-spacing:-0.4px;">${ex.name.toUpperCase()}</span>
-                <span style="font-size: 10px; font-weight:700; color:#8e8e93; letter-spacing:0.5px;">${ex.volume} КГ ОБЪЕМ</span>
+        <div style="background:#f2f2f7; border-radius:18px; padding:10px; display: flex; flex-direction: column; min-height: 0; border: 1px solid #e5e5ea; box-sizing: border-box; position: relative; z-index: 2; overflow: hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 6px; padding: 0 4px; flex-shrink: 0;">
+                <span style="font-size: 13px; font-weight:900; color:#000;">${ex.name.toUpperCase()}</span>
+                <span style="font-size: 9px; font-weight:700; color:#8e8e93;">${ex.volume} КГ ОБЪЕМ</span>
             </div>
-            <div style="background:#fff; border-radius:14px; padding: 6px 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-height: 0; overflow: hidden;">
+            <div style="background:#fff; border-radius:12px; padding: 4px 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-around; min-height: 0; overflow: hidden;">
                 ${ex.sets.map((set, i) => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex: 1; border-bottom: ${i === ex.sets.length - 1 ? 'none' : '1px solid #f2f2f7'}; padding: ${rowGap} 0;">
-                        <span style="color:#aeaeb2; font-size: 9px; font-weight:800; letter-spacing:0.5px;">ПОДХОД ${i+1}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: ${i === ex.sets.length - 1 ? 'none' : '1px solid #f2f2f7'}; padding: ${rowPadding} 0; line-height: 1;">
+                        <span style="color:#aeaeb2; font-size: 8px; font-weight:800;">ПОДХОД ${i+1}</span>
                         <div style="display: flex; align-items: baseline;">
-                            <span style="font-weight:900; color:#000; font-size: ${weightFontSize}; letter-spacing:-0.5px; line-height: 1;">${set.w}</span>
-                            <span style="font-size: 9px; font-weight:700; color:#aeaeb2; margin-left: 2px; text-transform: uppercase;">кг</span>
-                            <span style="font-size:12px; font-weight:600; color:#000; margin: 0 4px;">×</span>
-                            <span style="font-weight:900; color:#000; font-size: ${weightFontSize}; letter-spacing:-0.5px; line-height: 1;">${set.r}</span>
+                            <span style="font-weight:900; color:#000; font-size: ${weightFontSize}; letter-spacing:-0.5px;">${set.w}</span>
+                            <span style="font-size: 8px; font-weight:700; color:#aeaeb2; margin-left: 2px;">кг</span>
+                            <span style="font-size:11px; font-weight:600; color:#000; margin: 0 3px;">×</span>
+                            <span style="font-weight:900; color:#000; font-size: ${weightFontSize}; letter-spacing:-0.5px;">${set.r}</span>
                         </div>
                     </div>
                 `).join('')}
@@ -662,43 +670,81 @@ function generateShareCard() {
 
     const overlay = document.createElement('div');
     overlay.id = "share-overlay";
-    overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:100000; display:flex; flex-direction:column; font-family:-apple-system, system-ui, sans-serif; box-sizing:border-box;";
+    overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:100000; display:flex; flex-direction:column; font-family:-apple-system, system-ui, sans-serif; box-sizing:border-box; overflow: hidden;";
 
     overlay.innerHTML = `
-        <div style="width:100%; display:flex; justify-content:flex-end; padding: 15px 20px 5px; flex-shrink:0;">
-            <div onclick="document.getElementById('share-overlay').remove()" style="width:32px; height:32px; background:#000; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; cursor:pointer; font-weight:bold;">✕</div>
+        <div id="ignore-1" onclick="document.getElementById('share-overlay').remove()" style="position:absolute; top:15px; right:20px; color:#eee; font-size:18px; cursor:pointer; z-index:110;">✕</div>
+
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) rotate(-15deg); font-size:110px; font-weight:900; color:rgba(0,0,0,0.02); white-space:nowrap; z-index:1; pointer-events:none; user-select:none;">
+            ${new Date().toLocaleString('ru-RU', {month: 'long'}).toUpperCase()}
         </div>
 
-        <div style="flex:1; display:flex; flex-direction:column; padding: 0 15px 20px; box-sizing: border-box; min-height:0;">
-            
-            <div style="margin-bottom: 20px; flex-shrink: 0; border-bottom: 2px solid #000; padding: 0 0 12px 0;">
+        <div id="capture-area" style="flex:1; display:flex; flex-direction:column; padding: 20px 15px 10px; box-sizing: border-box; min-height:0; background:#fff; position:relative; z-index:2;">
+            <div style="margin-bottom: 15px; flex-shrink: 0; border-bottom: 2px solid #000; padding-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
-                        <div style="font-size: 11px; font-weight: 800; color: #8e8e93; margin-bottom: 4px;">${new Date().toLocaleDateString('ru-RU')}</div>
-                        <div style="font-size: 38px; font-weight: 900; color: #000; letter-spacing: -1.5px; line-height: 0.85;">${curD.toUpperCase()}</div>
+                        <div style="font-size: 10px; font-weight: 800; color: #8e8e93; margin-bottom: 2px;">${new Date().toLocaleDateString('ru-RU')}</div>
+                        <div style="font-size: 36px; font-weight: 800; color: #000; letter-spacing: 0px; line-height: 0.85;">${curD.toUpperCase()}</div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 28px; font-weight: 900; color: #000; line-height: 0.85;">${dayTotal}</div>
-                        <div style="font-size: 10px; color: #8e8e93; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">КГ ТОННАЖ</div>
+                        <div style="font-size: 26px; font-weight: 900; color: #000; line-height: 0.85;">${dayTotal}</div>
+                        <div style="font-size: 9px; color: #8e8e93; font-weight: 800; text-transform: uppercase;">КГ Тоннаж</div>
                     </div>
                 </div>
-                <div style="font-size: 10px; color:#000; font-weight: 900; margin-top: 14px; display: flex; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="font-size: 10px; color:#000; font-weight: 900; margin-top: 10px; display: flex; justify-content: space-between; text-transform: uppercase;">
                     <span>Блок ${curC} • Неделя ${curW}</span>
                     <span>Подходов: ${totalSets}</span>
                 </div>
             </div>
 
-            <div style="flex: 1; display: grid; grid-template-rows: repeat(${count}, 1fr); gap: 12px; min-height: 0;">
+            <div style="flex: 1; display: grid; grid-template-rows: repeat(${count}, 1fr); gap: 10px; min-height: 0;">
                 ${exercisesHtml}
             </div>
 
-            <div style="padding-top: 15px; text-align:center; flex-shrink: 0;">
-                <div style="font-size: 15px; font-weight: 900; color: #000; letter-spacing: 1px; border-top: 1px solid #f2f2f7; padding-top: 10px;">STREETLIFTING PRO</div>
+            <div style="padding: 12px 0 5px; display: flex; justify-content: center; align-items: center; gap: 12px; flex-shrink: 0;">
+                <div style="font-size: 13px; font-weight: 950; color: #000; letter-spacing: 0.5px;">STREETLIFTING PRO</div>
+                <div id="ignore-2" onclick="saveAsImage()" style="width:22px; height:22px; background:#000; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </div>
             </div>
         </div>
     `;
-
     document.body.appendChild(overlay);
+}
+
+// Функция для сохранения картинки
+async function saveAsImage() {
+    const area = document.getElementById('capture-area');
+    const closeBtn = document.getElementById('ignore-1');
+    const downloadBtn = document.getElementById('ignore-2');
+    
+    // Скрываем лишнее перед снимком
+    downloadBtn.style.visibility = 'hidden';
+    closeBtn.style.visibility = 'hidden';
+
+    const canvas = await html2canvas(area, { 
+        scale: 3, 
+        backgroundColor: "#ffffff",
+        useCORS: true 
+    });
+    
+    const dataUrl = canvas.toDataURL("image/png");
+
+    // Создаем временный экранный слой с готовой картинкой
+    const previewOverlay = document.createElement('div');
+    previewOverlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100001; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;";
+    
+    previewOverlay.innerHTML = `
+        <div style="color:#fff; font-size:14px; font-weight:800; margin-bottom:15px; text-align:center; font-family:sans-serif;">ЗАЖМИ КАРТИНКУ, ЧТОБЫ СОХРАНИТЬ</div>
+        <img src="${dataUrl}" style="width:100%; max-height:80vh; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />
+        <div onclick="this.parentElement.remove()" style="margin-top:20px; color:#fff; font-size:12px; font-weight:600; text-decoration:underline; cursor:pointer; font-family:sans-serif;">ЗАКРЫТЬ ПРЕВЬЮ</div>
+    `;
+
+    document.body.appendChild(previewOverlay);
+    
+    // Возвращаем видимость кнопкам на основном окне
+    downloadBtn.style.visibility = 'visible';
+    closeBtn.style.visibility = 'visible';
 }
 // сворачивание
 function toggleNotes() {

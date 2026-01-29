@@ -237,6 +237,9 @@
             let allChecked = true;
             let blockHtml = '';
 
+            // Проверка: нужно ли свернуть блок по умолчанию (Выходы)
+            const isMU = type === 'mu';
+
             for(let s=1; s<=sMax; s++) {
                 let id = `c${curC}_w${curW}${curD}${type}${s}`;
                 let isChecked = globalData[id+'c'] == 'true' || globalData[id+'c'] === true;
@@ -254,13 +257,17 @@
                 setTimeout(() => applyRPEStyle(document.getElementById(id+'rpe'), globalData[id+'rpe']||'none'), 0);
             }
 
-            html += `<div id="block-${blockId}" class="exercise-block ${allChecked?'completed':''}">
+            // Добавляем классы collapsed и collapsed-header если это Выходы и они не завершены
+            const collapseClass = (isMU && !allChecked) ? 'collapsed' : '';
+            const headerCollapseClass = (isMU && !allChecked) ? 'collapsed-header' : '';
+
+            html += `<div id="block-${blockId}" class="exercise-block ${allChecked?'completed':''} ${headerCollapseClass}">
                 <div class="ex-header" onclick="toggleBlock('${blockId}', this)">
                     <span>${name}</span>
                     <button class="warmup-hint-btn" onclick="event.stopPropagation(); showWarmup('${name}','${type}')">💡</button>
                     <span class="collapse-icon">▼</span>
                 </div>
-                <div id="content-${blockId}" class="ex-content">
+                <div id="content-${blockId}" class="ex-content ${collapseClass}">
                     <div class="col-labels"><span>ВЕС</span><span style="margin-left:35px">ПОВТ</span><span style="margin-left:115px">Выполнение</span></div>
                     ${blockHtml}
                 </div></div>`;
@@ -276,24 +283,24 @@
         document.getElementById('status').innerText = 'Готово';
     }
 
-    // async function hCh(target, blockId) {
-    //     const dtI = document.getElementById(`c${curC}_w${curW}${curD}dt`);
-    //     if(target.checked && !dtI.value) {
-    //         const today = new Date().toISOString().split('T')[0];
-    //         dtI.value = today; save(dtI.id, today);
-    //     }
-    //     globalData[target.id] = target.checked;
-    //     save(target.id, target.checked);
+    async function hCh(target, blockId) {
+        const dtI = document.getElementById(`c${curC}_w${curW}${curD}dt`);
+        if(target.checked && !dtI.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dtI.value = today; save(dtI.id, today);
+        }
+        globalData[target.id] = target.checked;
+        save(target.id, target.checked);
         
-    //     const block = document.getElementById('block-'+blockId);
-    //     const checks = block.querySelectorAll('input[type="checkbox"]');
-    //     let allDone = true;
-    //     checks.forEach(c => { if(!c.checked) allDone = false; });
-    //     block.classList.toggle('completed', allDone);
+        const block = document.getElementById('block-'+blockId);
+        const checks = block.querySelectorAll('input[type="checkbox"]');
+        let allDone = true;
+        checks.forEach(c => { if(!c.checked) allDone = false; });
+        block.classList.toggle('completed', allDone);
 
-    //     updateAllProgress();
-    //     if(target.checked) { document.getElementById('timer-widget').style.display='flex'; resetT(); }
-    // }
+        updateAllProgress();
+        // if(target.checked) { document.getElementById('timer-widget').style.display='flex'; resetT(); }
+    }
 
     async function createNewCycle() {
     const btn = document.getElementById('gen-btn');

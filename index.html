@@ -276,24 +276,24 @@
         document.getElementById('status').innerText = 'Готово';
     }
 
-    async function hCh(target, blockId) {
-        const dtI = document.getElementById(`c${curC}_w${curW}${curD}dt`);
-        if(target.checked && !dtI.value) {
-            const today = new Date().toISOString().split('T')[0];
-            dtI.value = today; save(dtI.id, today);
-        }
-        globalData[target.id] = target.checked;
-        save(target.id, target.checked);
+    // async function hCh(target, blockId) {
+    //     const dtI = document.getElementById(`c${curC}_w${curW}${curD}dt`);
+    //     if(target.checked && !dtI.value) {
+    //         const today = new Date().toISOString().split('T')[0];
+    //         dtI.value = today; save(dtI.id, today);
+    //     }
+    //     globalData[target.id] = target.checked;
+    //     save(target.id, target.checked);
         
-        const block = document.getElementById('block-'+blockId);
-        const checks = block.querySelectorAll('input[type="checkbox"]');
-        let allDone = true;
-        checks.forEach(c => { if(!c.checked) allDone = false; });
-        block.classList.toggle('completed', allDone);
+    //     const block = document.getElementById('block-'+blockId);
+    //     const checks = block.querySelectorAll('input[type="checkbox"]');
+    //     let allDone = true;
+    //     checks.forEach(c => { if(!c.checked) allDone = false; });
+    //     block.classList.toggle('completed', allDone);
 
-        updateAllProgress();
-        if(target.checked) { document.getElementById('timer-widget').style.display='flex'; resetT(); }
-    }
+    //     updateAllProgress();
+    //     if(target.checked) { document.getElementById('timer-widget').style.display='flex'; resetT(); }
+    // }
 
     async function createNewCycle() {
     const btn = document.getElementById('gen-btn');
@@ -645,34 +645,51 @@ function generateShareCard() {
     const weightFontSize = count > 2 ? '18px' : '22px';
     const rowPadding = count > 2 ? '1px' : '3px';
 
-    const exercisesHtml = activeExercises.map(ex => `
-        <div style="background:#f2f2f7; border-radius:18px; padding:10px; display: flex; flex-direction: column; min-height: 0; border: 1px solid #e5e5ea; box-sizing: border-box; position: relative; z-index: 2; overflow: hidden;">
-            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 6px; padding: 0 30px; flex-shrink: 0;">
-                <span style="font-size: 13px; font-weight:900; color:#000;">${ex.name.toUpperCase()}</span>
-                <span style="font-size: 9px; font-weight:700; color:#8e8e93;">${ex.volume} КГ ОБЪЕМ</span>
-            </div>
-            <div style="background:#fff; border-radius:12px; padding: 4px 30px; flex: 1; display: flex; flex-direction: column; justify-content: space-around; min-height: 0; overflow: hidden;">
-                ${ex.sets.map((set, i) => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: ${i === ex.sets.length - 1 ? 'none' : '1px solid #f2f2f7'}; padding: ${rowPadding} 0; line-height: 1; position: relative;">
-                        
-                        <span style="color:#aeaeb2; font-size: 8px; font-weight:800; flex-shrink: 0; width: 60px; z-index: 2;">ПОДХОД ${i+1}</span>
-                        
-                        <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; opacity: 0.12; z-index: 1;">
-                            <div style="width: 3px; height: 14px; background: #000; transform: skewX(-20deg);"></div>
-                            <div style="width: 3px; height: 14px; background: #000; transform: skewX(-20deg);"></div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: baseline; flex-shrink: 0; width: 85px; justify-content: flex-end; z-index: 2;">
-                            <span style="font-weight:900; color:#000; font-size: ${weightFontSize}; letter-spacing:-0.5px;">${set.w}</span>
-                            <span style="font-size: 8px; font-weight:700; color:#aeaeb2; margin-left: 2px;">кг</span>
-                            <span style="font-size:11px; font-weight:600; color:#000; margin: 0 3px;">×</span>
-                            <span style="font-weight:900; color:#000; font-size: ${weightFontSize}; letter-spacing:-0.5px;">${set.r}</span>
+const exercisesHtml = `
+    <div style="display: block; width: 100%; height: auto;">
+        ${activeExercises.map(ex => {
+            const dynamicRowPadding = "4px"; 
+            const weightFontSize = "20px";
+            const weightFontWeight = "800";
+
+            return `
+                <div style="background:#f2f2f7; border-radius:14px; padding:6px; display: block; border: 1px solid #e5e5ea; box-sizing: border-box; margin-bottom: 8px; width: 100%; height: fit-content;">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px; padding: 0 24px; height: 30px;">
+                        <span style="font-size: 14px; font-weight:800; color:#000; letter-spacing:-0.2px;">${ex.name.toUpperCase()}</span>
+                        <div style="background: #d1d1d6; min-width: 55px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                            <span style="font-size: 8px; font-weight:700; color:#000;">${ex.volume} KG</span>
                         </div>
                     </div>
-                `).join('')}
-            </div>
-        </div>
-    `).join('');
+
+                    <div style="background:#fff; border-radius:10px; display: block; border: 1px solid #efeff4; overflow: hidden; height: fit-content;">
+                        ${ex.sets.map((set, i) => `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background: ${i % 2 === 0 ? '#fff' : '#f9f9fb'}; border-bottom: ${i === ex.sets.length - 1 ? 'none' : '1px solid #f2f2f7'}; padding: ${dynamicRowPadding} 24px; position: relative; height: 32px; box-sizing: border-box;">
+                                
+                                <div style="display: flex; align-items: center; z-index: 2;">
+                                    <span style="background: #d1d1d6; color: #000; font-size: 10px; font-weight: 900; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; border-radius: 3px;">${i+1}</span>
+                                </div>
+                                
+                                <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: 2px; opacity: 0.05; z-index: 1;">
+                                    <div style="width: 2px; height: 10px; background: #000; transform: skewX(-20deg);"></div>
+                                    <div style="width: 2px; height: 10px; background: #000; transform: skewX(-20deg);"></div>
+                                </div>
+                                
+                                <div style="display: flex; align-items: baseline; z-index: 2;">
+                                    <span style="font-weight:${weightFontWeight}; color:#000; font-size: ${weightFontSize}; letter-spacing:-0.5px;">${set.w}</span>
+                                    <span style="font-size: 10px; font-weight:700; color:#aeaeb2; margin-left: 3px; text-transform: uppercase;">kg</span>
+                                    <span style="font-size:10px; font-weight:400; color:#000; margin: 0 5px;">X</span>
+                                    <span style="font-weight:${weightFontWeight}; color:#000; font-size: ${weightFontSize}; letter-spacing:-0.5px;">${set.r}</span>
+                                    <span style="font-size: 7px; font-weight:700; color:#aeaeb2; margin-left: 3px; text-transform: uppercase;">повт</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('')}
+    </div>
+`;
 
     const overlay = document.createElement('div');
     overlay.id = "share-overlay";

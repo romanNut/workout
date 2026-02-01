@@ -17,26 +17,24 @@
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
-        html, body { height: 100dvh; max-width: 100vw; overflow-x: hidden; position: relative; margin: 0; padding: 0; width: 100%; touch-action: manipulation; background: var(--bg); /* Тот же цвет, что и у body */}
+        html, body { height: 100dvh; max-width: 100vw; overflow-x: hidden; position: relative; margin: 0; padding: 0; width: 100%; touch-action: manipulation; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
+body {
     font-family: -apple-system, system-ui, sans-serif;
     background: var(--bg);
     color: var(--dark);
     margin: 0;
-    padding: 0;
-    
-    /* Убираем жесткий паддинг, позволяя фону быть на весь экран */
+    /* Возвращаем 15px по бокам. Сверху и снизу используем безопасные зоны */
+    padding: var(--safe-top) 15px var(--safe-bottom) 15px;
     min-height: 100dvh;
-    
-    /* Отступы только для контента, чтобы он не залезал под челку и полоску */
-    padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
-    
+    box-sizing: border-box; /* Важно, чтобы паддинги не расширяли экран */
     -webkit-user-select: none;
     user-select: none;
 }
-
+html {
+    background: var(--bg); /* Это закрасит ту самую пустую область внизу */
+    height: 100%;
+}
 img {
     -webkit-touch-callout: default !important; /* Включает меню "Сохранить фото" */
     -webkit-user-select: none;                /* Запрещает выделение картинки как текста */

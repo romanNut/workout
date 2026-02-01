@@ -21,7 +21,16 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px 10px 100px; color: var(--dark); 
         padding: var(--safe-top) 10px calc(var(--safe-bottom) + 80px); 
-        min-height: 100dvh;}
+        min-height: 100dvh;
+    -webkit-user-select: none;
+    user-select: none;}
+
+img {
+    -webkit-touch-callout: default !important; /* Включает меню "Сохранить фото" */
+    -webkit-user-select: none;                /* Запрещает выделение картинки как текста */
+    user-select: none;
+}
+
 
         .header-row { display: flex; justify-content: space-between; align-items: center; padding: 5px; margin-bottom: 10px; }
         .sync-status { font-size: 11px; color: #7f8c8d; font-weight: bold; }
@@ -68,7 +77,10 @@
         #warmup-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 16px; z-index: 4000; display: none; width: 85%; max-width: 300px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
     
         
-    
+        input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
     
     /* выгрузка */
 @media print {

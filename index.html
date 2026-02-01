@@ -17,13 +17,25 @@
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
-        html, body { height: 100dvh; max-width: 100vw; overflow-x: hidden; position: relative; margin: 0; padding: 0; width: 100%; touch-action: manipulation; }
+        html, body { height: 100dvh; max-width: 100vw; overflow-x: hidden; position: relative; margin: 0; padding: 0; width: 100%; touch-action: manipulation; background: var(--bg); /* Тот же цвет, что и у body */}
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px 10px 100px; color: var(--dark); 
-        padding: var(--safe-top) 10px calc(var(--safe-bottom) + 80px); 
-        min-height: 100dvh;
+        body {
+    font-family: -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    margin: 0;
+    padding: 0;
+    
+    /* Убираем жесткий паддинг, позволяя фону быть на весь экран */
+    min-height: 100dvh;
+    
+    /* Отступы только для контента, чтобы он не залезал под челку и полоску */
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    
     -webkit-user-select: none;
-    user-select: none;}
+    user-select: none;
+}
 
 img {
     -webkit-touch-callout: default !important; /* Включает меню "Сохранить фото" */
@@ -803,7 +815,7 @@ async function saveAsImage() {
         
         <img src="${dataUrl}" id="ready-to-share-img" style="width:100%; max-height:70vh; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />
         
-        <button onclick="nativeShare()" style="margin-top:30px; width:80%; padding:20px; background:#007AFF; color:white; border:none; border-radius:15px; font-size:18px; font-weight:bold; -webkit-appearance:none;">
+        <button onclick="nativeShare()" style="margin-top:15px; width:80%; padding:5px; background:#007AFF; color:white; border:none; border-radius:15px; font-size:14px; font-weight:bold; -webkit-appearance:none;">
             СКАЧАТЬ / ПОДЕЛИТЬСЯ
         </button>
         

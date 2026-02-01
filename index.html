@@ -80,6 +80,19 @@ img {
         input, textarea {
     -webkit-user-select: text;
     user-select: text;
+
+
+#share-overlay, #share-overlay * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Разрешаем вызов меню только для финальной картинки */
+#share-overlay img {
+    -webkit-touch-callout: default !important;
+    pointer-events: auto !important;
+}
 }
     
     /* выгрузка */
@@ -788,7 +801,7 @@ async function saveAsImage() {
     
     previewOverlay.innerHTML = `
         
-        <img src="${dataUrl}" style="width:100%; max-height:80vh; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />
+        <img src="${dataUrl}" style="width:100%; max-height:80vh; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); -webkit-touch-callout: default !important; pointer-events: auto !important; -webkit-user-select: none !important; user-select: none !important;" />
         <div onclick="this.parentElement.remove()" style="margin-top:20px; color:#fff; font-size:12px; font-weight:600; text-decoration:underline; cursor:pointer; font-family:sans-serif;">ЗАКРЫТЬ ПРЕВЬЮ</div>
     `;
 

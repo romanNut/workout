@@ -775,7 +775,7 @@ async function saveAsImage() {
     previewOverlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100001; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;";
     
     previewOverlay.innerHTML = `
-        <div style="color:#fff; font-size:14px; font-weight:800; margin-bottom:15px; text-align:center; font-family:sans-serif;">ЗАЖМИ КАРТИНКУ, ЧТОБЫ СОХРАНИТЬ</div>
+        
         <img src="${dataUrl}" style="width:100%; max-height:80vh; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />
         <div onclick="this.parentElement.remove()" style="margin-top:20px; color:#fff; font-size:12px; font-weight:600; text-decoration:underline; cursor:pointer; font-family:sans-serif;">ЗАКРЫТЬ ПРЕВЬЮ</div>
     `;

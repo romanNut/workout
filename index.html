@@ -783,7 +783,6 @@ async function saveAsImage() {
     const closeBtn = document.getElementById('ignore-1');
     const downloadBtn = document.getElementById('ignore-2');
     
-    // Скрываем лишнее перед снимком
     downloadBtn.style.visibility = 'hidden';
     closeBtn.style.visibility = 'hidden';
 
@@ -795,21 +794,48 @@ async function saveAsImage() {
     
     const dataUrl = canvas.toDataURL("image/png");
 
-    // Создаем временный экранный слой с готовой картинкой
     const previewOverlay = document.createElement('div');
-    previewOverlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100001; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;";
+    previewOverlay.id = "final-preview-overlay";
+    previewOverlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:100001; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; padding-top: env(safe-area-inset-top);";
     
     previewOverlay.innerHTML = `
+        <div onclick="this.parentElement.remove()" style="position:absolute; top:calc(env(safe-area-inset-top) + 10px); right:20px; color:#fff; font-size:30px; padding:10px;">✕</div>
         
-        <img src="${dataUrl}" style="width:100%; max-height:80vh; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); -webkit-touch-callout: default !important; pointer-events: auto !important; -webkit-user-select: none !important; user-select: none !important;" />
-        <div onclick="this.parentElement.remove()" style="margin-top:20px; color:#fff; font-size:12px; font-weight:600; text-decoration:underline; cursor:pointer; font-family:sans-serif;">ЗАКРЫТЬ ПРЕВЬЮ</div>
+        <img src="${dataUrl}" id="ready-to-share-img" style="width:100%; max-height:70vh; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />
+        
+        <button onclick="nativeShare()" style="margin-top:30px; width:80%; padding:20px; background:#007AFF; color:white; border:none; border-radius:15px; font-size:18px; font-weight:bold; -webkit-appearance:none;">
+            СКАЧАТЬ / ПОДЕЛИТЬСЯ
+        </button>
+        
+        <div onclick="this.parentElement.remove()" style="margin-top:20px; color:#aaa; font-size:13px;">Закрыть превью</div>
     `;
 
     document.body.appendChild(previewOverlay);
     
-    // Возвращаем видимость кнопкам на основном окне
     downloadBtn.style.visibility = 'visible';
     closeBtn.style.visibility = 'visible';
+}
+async function nativeShare() {
+    const imgElement = document.getElementById('ready-to-share-img');
+    if (!imgElement) return;
+
+    try {
+        const response = await fetch(imgElement.src);
+        const blob = await response.blob();
+        const file = new File([blob], 'workout_progress.png', { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'Моя тренировка',
+                text: 'Streetlifting Pro Progress'
+            });
+        } else {
+            alert("Ваш браузер не поддерживает прямой экспорт. Попробуйте сделать скриншот.");
+        }
+    } catch (err) {
+        console.error("Ошибка экспорта:", err);
+    }
 }
 // сворачивание
 function toggleNotes() {
